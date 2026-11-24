@@ -4,5 +4,6 @@ export type NavigationItem = {
   path: string;
   label: string;
   icon: typeof LayoutDashboard;
+  color?: string;
   appAdminOnly?: boolean;
 };

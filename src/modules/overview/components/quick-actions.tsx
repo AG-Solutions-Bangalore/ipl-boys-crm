@@ -1,4 +1,4 @@
-import { ArrowUpRight, BadgeCheck, Bolt, Clock3, Shield, Swords } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Clock3, Shield, Swords } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function QuickActions() {
@@ -8,43 +8,42 @@ export function QuickActions() {
     <section className="panel">
       <div className="panel-head">
         <div>
-          <p className="eyebrow">QUICK ACTIONS</p>
+          <p className="eyebrow">Quick actions</p>
           <h3>Run the league</h3>
         </div>
-        <Bolt size={18} />
       </div>
       <div className="quick-actions">
         <button onClick={() => navigate("/approvals")}>
-          <BadgeCheck />
+          <BadgeCheck size={16} strokeWidth={1.5} aria-hidden="true" />
           <span>
             <b>Review signups</b>
             <small>Approve or deny access</small>
           </span>
-          <ArrowUpRight />
+          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
         </button>
         <button onClick={() => navigate("/gameweeks")}>
-          <Clock3 />
+          <Clock3 size={16} strokeWidth={1.5} aria-hidden="true" />
           <span>
             <b>Manage gameweeks</b>
             <small>Set deadlines and recalculate</small>
           </span>
-          <ArrowUpRight />
+          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
         </button>
         <button onClick={() => navigate("/trades")}>
-          <Swords />
+          <Swords size={16} strokeWidth={1.5} aria-hidden="true" />
           <span>
             <b>Review trades</b>
             <small>Process pending exchanges</small>
           </span>
-          <ArrowUpRight />
+          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
         </button>
         <button onClick={() => navigate("/leagues")}>
-          <Shield />
+          <Shield size={16} strokeWidth={1.5} aria-hidden="true" />
           <span>
             <b>League rules</b>
             <small>Budgets, chips, roster limits</small>
           </span>
-          <ArrowUpRight />
+          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
         </button>
       </div>
     </section>

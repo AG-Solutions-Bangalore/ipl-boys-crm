@@ -27,7 +27,7 @@ export function ScoresPage() {
       <PanelTitle
         eyebrow="OFFICIAL RESULTS"
         title="Scores & match data"
-        description="Enter scorecard facts for the selected league. Laravel calculates fantasy points and ranks from these facts."
+        description="Enter scorecard facts for the selected league. Points and ranks are calculated on the server."
       />
       <ScoreEntryForm profileId={profileId} gameweeks={gameweeks.rows} players={players.rows} />
       <div className="panel">

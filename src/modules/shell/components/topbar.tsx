@@ -19,15 +19,15 @@ export function Topbar() {
     <header className="topbar">
       <div>
         <div className="crumb">
-          CONTROL ROOM <span>/</span>
-          {(activeItem?.label ?? "").toUpperCase()}
+          Control room <span>/</span>
+          {activeItem?.label ?? "Overview"}
         </div>
-        <h1>{activeItem?.label}</h1>
+        <h1>{activeItem?.label ?? "Overview"}</h1>
       </div>
       <div className="top-actions">
         {profiles.length > 0 && (
           <label className="profile-select">
-            <span>LEAGUE</span>
+            <span>League</span>
             <select value={profileId} onChange={(e) => setProfileId(e.target.value)}>
               {profiles.map((p) => (
                 <option key={String(p.id)} value={String(p.id)}>
@@ -35,14 +35,14 @@ export function Topbar() {
                 </option>
               ))}
             </select>
-            <ChevronDown size={14} />
+            <ChevronDown size={14} strokeWidth={1.5} aria-hidden="true" />
           </label>
         )}
-        <button className="icon-button" title="Refresh data" onClick={refresh}>
-          <RefreshCw size={16} />
+        <button className="icon-button" title="Refresh data" aria-label="Refresh data" onClick={refresh}>
+          <RefreshCw size={15} strokeWidth={1.5} aria-hidden="true" />
         </button>
         <div className="user-chip">
-          <span className="avatar">{displayName.slice(0, 1).toUpperCase()}</span>
+          <span className="avatar" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>
           <span>
             {displayName}
             <small>{roleLabel}</small>

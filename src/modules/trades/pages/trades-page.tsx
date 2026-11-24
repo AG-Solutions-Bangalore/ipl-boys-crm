@@ -52,7 +52,7 @@ export function TradesPage() {
       <PanelTitle
         eyebrow="TRANSFERS & LOANS"
         title="Trade review"
-        description="Accept valid pending exchanges or cancel an offer. Laravel applies ownership, budget, roster, and weight checks."
+        description="Accept valid pending exchanges or cancel an offer. Ownership, budget, roster, and weight checks are applied on the server."
       />
       <div className="panel">
         <DataTable

@@ -68,33 +68,37 @@ export function AuctionPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="LIVE AUCTION"
+        eyebrow="Live auction"
         title="Auction desk"
-        description="Record a sale through the atomic Laravel endpoint. Budget, ownership, base price, and roster caps are validated on the server."
+        description="Record player sales in real-time. Budget, ownership, base price, and roster caps are validated on the server."
       />
-      <div className="auction-grid">
-        <AuctionForm
-          teams={teams.rows}
-          unassigned={unassigned}
-          teamId={teamId}
-          playerId={playerId}
-          price={price}
-          filter={filter}
-          selectedPlayer={selectedPlayer}
-          selectedTeam={selectedTeam}
-          busy={busy}
-          onTeamChange={setTeamId}
-          onPlayerChange={setPlayerId}
-          onPriceChange={setPrice}
-          onFilterChange={setFilter}
-          onSubmit={sell}
-        />
-        <AuctionSummary selectedPlayer={selectedPlayer} selectedTeam={selectedTeam} price={price} />
+      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <AuctionForm
+            teams={teams.rows}
+            unassigned={unassigned}
+            teamId={teamId}
+            playerId={playerId}
+            price={price}
+            filter={filter}
+            selectedPlayer={selectedPlayer}
+            selectedTeam={selectedTeam}
+            busy={busy}
+            onTeamChange={setTeamId}
+            onPlayerChange={setPlayerId}
+            onPriceChange={setPrice}
+            onFilterChange={setFilter}
+            onSubmit={sell}
+          />
+        </div>
+        <div className="lg:col-span-5">
+          <AuctionSummary selectedPlayer={selectedPlayer} selectedTeam={selectedTeam} price={price} />
+        </div>
       </div>
       <section className="panel">
         <div className="panel-head">
           <div>
-            <p className="eyebrow">AVAILABLE ASSETS</p>
+            <p className="eyebrow">Available assets</p>
             <h3>
               Unsold pool <span className="count-pill">{unassigned.length}</span>
             </h3>

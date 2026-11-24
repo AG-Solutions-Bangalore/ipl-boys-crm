@@ -18,7 +18,7 @@ export function OverviewPage() {
     <>
       <div className="welcome-row">
         <div>
-          <p className="eyebrow">LEAGUE OPERATIONS / 2026 SEASON</p>
+          <p className="eyebrow">League operations · 2026 season</p>
           <h2>{asText(selectedProfile?.name) || "Choose a league"}</h2>
           <p className="muted">
             Manage the season, keep records consistent, and review changes before they reach
@@ -26,8 +26,8 @@ export function OverviewPage() {
           </p>
         </div>
         <span className="season-pill">
-          <span className="online-dot" />
-          SYSTEM ONLINE
+          <span className="online-dot" aria-hidden="true" />
+          System operational
         </span>
       </div>
       <div className="metric-grid">
@@ -65,11 +65,11 @@ export function OverviewPage() {
         <section className="panel">
           <div className="panel-head">
             <div>
-              <p className="eyebrow">SEASON FLOW</p>
+              <p className="eyebrow">Season flow</p>
               <h3>Gameweek calendar</h3>
             </div>
             <button className="text-button" onClick={() => navigate("/gameweeks")}>
-              All weeks <ArrowUpRight size={14} />
+              All weeks <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
             </button>
           </div>
           <DataTable
