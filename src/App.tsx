@@ -1,219 +1,2538 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, ArrowDownToLine, ArrowUpRight, BadgeCheck, Ban, Bolt, Check, ChevronDown, CircleDollarSign, Clock3, Database, Gavel, LayoutDashboard, LogOut, RefreshCw, Shield, Swords, Users, X, Plus } from 'lucide-react';
-import { api, clearToken, readToken, type Row, type User } from './api';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Activity,
+  ArrowDownToLine,
+  ArrowUpRight,
+  BadgeCheck,
+  Ban,
+  Bolt,
+  Check,
+  ChevronDown,
+  CircleDollarSign,
+  Clock3,
+  Database,
+  Gavel,
+  LayoutDashboard,
+  LogOut,
+  RefreshCw,
+  Shield,
+  Swords,
+  Users,
+  X,
+  Plus,
+} from "lucide-react";
+import { api, clearToken, readToken, type Row, type User } from "./api";
 
-type View = 'overview' | 'approvals' | 'managers' | 'leagues' | 'teams' | 'players' | 'auction' | 'gameweeks' | 'scores' | 'trades' | 'activity';
-const navigation: {id: View; label: string; icon: typeof LayoutDashboard}[] = [
-  {id:'overview',label:'Overview',icon:LayoutDashboard}, {id:'approvals',label:'Approvals',icon:BadgeCheck}, {id:'managers',label:'Managers & teams',icon:Users},
-  {id:'leagues',label:'League settings',icon:Shield}, {id:'teams',label:'Fantasy teams',icon:Users},
-  {id:'players',label:'Player pool',icon:Activity}, {id:'auction',label:'Auction desk',icon:Gavel}, {id:'gameweeks',label:'Gameweeks',icon:Clock3},
-  {id:'scores',label:'Scores',icon:CircleDollarSign}, {id:'trades',label:'Trades',icon:Swords},
-  {id:'activity',label:'Activity log',icon:Database},
-];
+type View =
+  | "overview"
+  | "approvals"
+  | "managers"
+  | "leagues"
+  | "teams"
+  | "players"
+  | "auction"
+  | "gameweeks"
+  | "scores"
+  | "trades"
+  | "activity";
+const navigation: { id: View; label: string; icon: typeof LayoutDashboard }[] =
+  [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "approvals", label: "Approvals", icon: BadgeCheck },
+    { id: "managers", label: "Managers & teams", icon: Users },
+    { id: "leagues", label: "League settings", icon: Shield },
+    { id: "teams", label: "Fantasy teams", icon: Users },
+    { id: "players", label: "Player pool", icon: Activity },
+    { id: "auction", label: "Auction desk", icon: Gavel },
+    { id: "gameweeks", label: "Gameweeks", icon: Clock3 },
+    { id: "scores", label: "Scores", icon: CircleDollarSign },
+    { id: "trades", label: "Trades", icon: Swords },
+    { id: "activity", label: "Activity log", icon: Database },
+  ];
 const emptyUser = (): User | null => {
-  const raw = localStorage.getItem('fantasy_world_admin_user');
-  try { return raw ? JSON.parse(raw) as User : null; } catch { return null; }
+  const raw = localStorage.getItem("fantasy_world_admin_user");
+  try {
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
 };
-const asText = (v: unknown) => v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
-const isTrue = (v: unknown) => v === true || v === 1 || v === '1' || v === 'true';
+const asText = (v: unknown) =>
+  v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+const isTrue = (v: unknown) =>
+  v === true || v === 1 || v === "1" || v === "true";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(emptyUser);
-  const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false); const [error, setError] = useState('');
-  const [view, setView] = useState<View>('overview'); const [profileId, setProfileId] = useState('');
-  const [profiles, setProfiles] = useState<Row[]>([]); const [refreshKey, setRefreshKey] = useState(0);
-  const [notice, setNotice] = useState('');
-  const isAdmin = !!user?.roles?.some(role => role === 'app_admin' || role === 'profile_admin');
-  const isAppAdmin = !!user?.roles?.includes('app_admin');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [view, setView] = useState<View>("overview");
+  const [profileId, setProfileId] = useState("");
+  const [profiles, setProfiles] = useState<Row[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [notice, setNotice] = useState("");
+  const isAdmin = !!user?.roles?.some(
+    (role) => role === "app_admin" || role === "profile_admin",
+  );
+  const isAppAdmin = !!user?.roles?.includes("app_admin");
 
   useEffect(() => {
-    if (!readToken()) { setUser(null); return; }
-    api.currentUser().then(({user: current}) => {
-      setUser(current); localStorage.setItem('fantasy_world_admin_user', JSON.stringify(current));
-    }).catch(() => { clearToken(); localStorage.removeItem('fantasy_world_admin_user'); setUser(null); });
+    if (!readToken()) {
+      setUser(null);
+      return;
+    }
+    api
+      .currentUser()
+      .then(({ user: current }) => {
+        setUser(current);
+        localStorage.setItem(
+          "fantasy_world_admin_user",
+          JSON.stringify(current),
+        );
+      })
+      .catch(() => {
+        clearToken();
+        localStorage.removeItem("fantasy_world_admin_user");
+        setUser(null);
+      });
   }, []);
 
   useEffect(() => {
     if (!user || !isAdmin) return;
-    api.profiles().then(items => {
-      setProfiles(items);
-      if (!profileId && items[0]?.id) setProfileId(String(items[0].id));
-    }).catch(err => setError(err.message));
+    api
+      .profiles()
+      .then((items) => {
+        setProfiles(items);
+        if (!profileId && items[0]?.id) setProfileId(String(items[0].id));
+      })
+      .catch((err) => setError(err.message));
   }, [user, isAdmin, refreshKey]);
 
-  const refresh = useCallback(() => setRefreshKey(n => n + 1), []);
+  const refresh = useCallback(() => setRefreshKey((n) => n + 1), []);
   const signIn = async (event: React.FormEvent) => {
-    event.preventDefault(); setBusy(true); setError('');
+    event.preventDefault();
+    setBusy(true);
+    setError("");
     try {
       const result = await api.login(email.trim(), password);
       const loggedIn = result.user;
-      localStorage.setItem('fantasy_world_admin_token', result.session.access_token);
-      localStorage.setItem('fantasy_world_admin_user', JSON.stringify(loggedIn));
-      if (!loggedIn.roles?.some(role => role === 'app_admin' || role === 'profile_admin')) {
-        clearToken(); localStorage.removeItem('fantasy_world_admin_user');
-        throw new Error('This account does not have an administrator role.');
+      localStorage.setItem(
+        "fantasy_world_admin_token",
+        result.session.access_token,
+      );
+      localStorage.setItem(
+        "fantasy_world_admin_user",
+        JSON.stringify(loggedIn),
+      );
+      if (
+        !loggedIn.roles?.some(
+          (role) => role === "app_admin" || role === "profile_admin",
+        )
+      ) {
+        clearToken();
+        localStorage.removeItem("fantasy_world_admin_user");
+        throw new Error("This account does not have an administrator role.");
       }
       setUser(loggedIn);
-    } catch (err) { setError((err as Error).message); }
-    finally { setBusy(false); }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
   const signOut = async () => {
-    try { await api.logout(); } catch { /* Token is removed locally if the server is offline. */ }
-    clearToken(); localStorage.removeItem('fantasy_world_admin_user'); setUser(null);
+    try {
+      await api.logout();
+    } catch {
+      /* Token is removed locally if the server is offline. */
+    }
+    clearToken();
+    localStorage.removeItem("fantasy_world_admin_user");
+    setUser(null);
   };
 
-  if (!user) return <main className="login-shell"><form className="login-card" onSubmit={signIn}>
-    <div className="brand-mark">FW<span>·</span></div><p className="eyebrow">FANTASY WORLD / ADMIN</p>
-    <h1>Control room</h1><p className="muted">Sign in with an approved administrator account.</p>
-    {error && <p className="error-banner">{error}</p>}
-    <label>Email address<input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" /></label>
-    <label>Password<input type="password" required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" /></label>
-    <button className="primary full" disabled={busy}>{busy?'Signing in…':'Sign in'}</button>
-  </form><span className="login-foot">ADMIN ACCESS IS AUDITED · MYSQL IS ONLY ACCESSED THROUGH LARAVEL</span></main>;
+  if (!user)
+    return (
+      <main className="login-shell">
+        <form className="login-card" onSubmit={signIn}>
+          <div className="brand-mark">
+            FW<span>·</span>
+          </div>
+          <p className="eyebrow">FANTASY WORLD / ADMIN</p>
+          <h1>Control room</h1>
+          <p className="muted">
+            Sign in with an approved administrator account.
+          </p>
+          {error && <p className="error-banner">{error}</p>}
+          <label>
+            Email address
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </label>
+          <button className="primary full" disabled={busy}>
+            {busy ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+        <span className="login-foot">
+          ADMIN ACCESS IS AUDITED · MYSQL IS ONLY ACCESSED THROUGH LARAVEL
+        </span>
+      </main>
+    );
 
-  if (!isAdmin) return <main className="login-shell"><section className="login-card"><div className="brand-mark">FW<span>·</span></div><h1>Admin role required</h1><p>Your signed-in account has no <code>app_admin</code> or <code>profile_admin</code> role.</p><button className="primary" onClick={signOut}>Sign out</button></section></main>;
+  if (!isAdmin)
+    return (
+      <main className="login-shell">
+        <section className="login-card">
+          <div className="brand-mark">
+            FW<span>·</span>
+          </div>
+          <h1>Admin role required</h1>
+          <p>
+            Your signed-in account has no <code>app_admin</code> or{" "}
+            <code>profile_admin</code> role.
+          </p>
+          <button className="primary" onClick={signOut}>
+            Sign out
+          </button>
+        </section>
+      </main>
+    );
 
-  const selectedProfile = profiles.find(profile => String(profile.id) === profileId);
-  return <div className="app-shell">
-    <aside className="sidebar"><div className="brand"><div className="brand-mark">FW<span>·</span></div><div><b>FANTASY WORLD</b><small>ADMIN CONSOLE</small></div></div>
-      <div className="side-label">MANAGEMENT</div><nav>{navigation.filter(item=>(item.id!=='approvals'&&item.id!=='managers')||isAppAdmin).map(item => {const Icon=item.icon;return <button key={item.id} className={view===item.id?'nav-item active':'nav-item'} onClick={()=>setView(item.id)}><Icon size={17}/>{item.label}{item.id==='approvals'&&<span className="nav-dot"/>}</button>})}</nav>
-      <div className="sidebar-bottom"><div className="secure-note"><span className="online-dot"/>Laravel API connected</div><button className="nav-item" onClick={signOut}><LogOut size={17}/>Sign out</button></div>
-    </aside>
-    <main className="main-panel"><header className="topbar"><div><div className="crumb">CONTROL ROOM <span>/</span> {navigation.find(n=>n.id===view)?.label.toUpperCase()}</div><h1>{navigation.find(n=>n.id===view)?.label}</h1></div><div className="top-actions">
-      {profiles.length>0&&<label className="profile-select"><span>LEAGUE</span><select value={profileId} onChange={e=>setProfileId(e.target.value)}>{profiles.map(p=><option key={String(p.id)} value={String(p.id)}>{asText(p.name)}</option>)}</select><ChevronDown size={14}/></label>}
-      <button className="icon-button" title="Refresh data" onClick={refresh}><RefreshCw size={16}/></button><div className="user-chip"><span className="avatar">{(user.user_metadata?.display_name||user.email).slice(0,1).toUpperCase()}</span><span>{user.user_metadata?.display_name||user.email}<small>{user.roles.includes('app_admin')?'App admin':'Profile admin'}</small></span></div>
-    </div></header>
-    {error&&<div className="error-banner inline"><span>{error}</span><button onClick={()=>setError('')}><X size={15}/></button></div>}
-    {notice&&<div className="success-banner inline"><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
-    <section className="content" key={`${view}-${profileId}-${refreshKey}`}>
-      {view==='overview'&&<Overview profileId={profileId} profiles={profiles} onNavigate={setView} />}
-      {view==='approvals'&&<Approvals onChanged={refresh} onNotice={setNotice} />}
-      {view==='managers'&&isAppAdmin&&<ManagerAssignments profileId={profileId} onChanged={refresh} onNotice={setNotice} />}
-      {view==='leagues'&&<LeaguePage profile={selectedProfile} profiles={profiles} userId={user.id} canCreate={isAppAdmin} onChanged={refresh} onNotice={setNotice} />}
-      {view==='teams'&&<TeamManager profileId={profileId} canManage={isAdmin} onChanged={refresh} onNotice={setNotice} />}
-      {view==='players'&&<PlayerManager canManage={isAppAdmin} onChanged={refresh} onNotice={setNotice} />}
-      {view==='auction'&&<AuctionDesk profileId={profileId} onChanged={refresh} onNotice={setNotice} />}
-      {view==='gameweeks'&&<GameweekManager profileId={profileId} canManage={isAppAdmin} onChanged={refresh} onNotice={setNotice} />}
-      {view==='scores'&&<ScoreManager profileId={profileId} onNotice={setNotice} onChanged={refresh} />}
-      {view==='trades'&&<TradeManager profileId={profileId} onChanged={refresh} onNotice={setNotice} />}
-      {view==='activity'&&<ActivityView profileId={profileId} />}
-    </section></main>
-  </div>;
+  const selectedProfile = profiles.find(
+    (profile) => String(profile.id) === profileId,
+  );
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">
+            FW<span>·</span>
+          </div>
+          <div>
+            <b>FANTASY WORLD</b>
+            <small>ADMIN CONSOLE</small>
+          </div>
+        </div>
+        <div className="side-label">MANAGEMENT</div>
+        <nav>
+          {navigation
+            .filter(
+              (item) =>
+                (item.id !== "approvals" && item.id !== "managers") ||
+                isAppAdmin,
+            )
+            .map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  className={view === item.id ? "nav-item active" : "nav-item"}
+                  onClick={() => setView(item.id)}
+                >
+                  <Icon size={17} />
+                  {item.label}
+                  {item.id === "approvals" && <span className="nav-dot" />}
+                </button>
+              );
+            })}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="secure-note">
+            <span className="online-dot" />
+            Laravel API connected
+          </div>
+          <button className="nav-item" onClick={signOut}>
+            <LogOut size={17} />
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      <main className="main-panel">
+        <header className="topbar">
+          <div>
+            <div className="crumb">
+              CONTROL ROOM <span>/</span>
+              {navigation.find((n) => n.id === view)?.label.toUpperCase()}
+            </div>
+            <h1>{navigation.find((n) => n.id === view)?.label}</h1>
+          </div>
+          <div className="top-actions">
+            {profiles.length > 0 && (
+              <label className="profile-select">
+                <span>LEAGUE</span>
+                <select
+                  value={profileId}
+                  onChange={(e) => setProfileId(e.target.value)}
+                >
+                  {profiles.map((p) => (
+                    <option key={String(p.id)} value={String(p.id)}>
+                      {asText(p.name)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} />
+              </label>
+            )}
+            <button
+              className="icon-button"
+              title="Refresh data"
+              onClick={refresh}
+            >
+              <RefreshCw size={16} />
+            </button>
+
+            <div className="user-chip">
+              <span className="avatar">
+                {(user.user_metadata?.display_name || user.email)
+                  .slice(0, 1)
+                  .toUpperCase()}
+              </span>
+              <span>
+                {user.user_metadata?.display_name || user.email}
+                <small>
+                  {user.roles.includes("app_admin")
+                    ? "App admin"
+                    : "Profile admin"}
+                </small>
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {error && (
+          <div className="error-banner inline">
+            <span>{error}</span>
+            <button onClick={() => setError("")}>
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
+        {notice && (
+          <div className="success-banner inline">
+            <span>{notice}</span>
+            <button onClick={() => setNotice("")}>
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
+        <section className="content" key={`${view}-${profileId}-${refreshKey}`}>
+          {view === "overview" && (
+            <Overview
+              profileId={profileId}
+              profiles={profiles}
+              onNavigate={setView}
+            />
+          )}
+          {view === "approvals" && (
+            <Approvals onChanged={refresh} onNotice={setNotice} />
+          )}
+          {view === "managers" && isAppAdmin && (
+            <ManagerAssignments
+              profileId={profileId}
+              onChanged={refresh}
+              onNotice={setNotice}
+            />
+          )}
+          {view === "leagues" && (
+            <LeaguePage
+              profile={selectedProfile}
+              profiles={profiles}
+              userId={user.id}
+              canCreate={isAppAdmin}
+              onChanged={refresh}
+              onNotice={setNotice}
+            />
+          )}
+          {view === "teams" && (
+            <TeamManager
+              profileId={profileId}
+              canManage={isAdmin}
+              onChanged={refresh}
+              onNotice={setNotice}
+            />
+          )}
+          {view === "players" && (
+            <PlayerManager
+              canManage={isAppAdmin}
+              onChanged={refresh}
+              onNotice={setNotice}
+            />
+          )}
+          {view === "auction" && (
+            <AuctionDesk
+              profileId={profileId}
+              onChanged={refresh}
+              onNotice={setNotice}
+            />
+          )}
+          {view === "gameweeks" && (
+            <GameweekManager
+              profileId={profileId}
+              canManage={isAppAdmin}
+              onChanged={refresh}
+              onNotice={setNotice}
+            />
+          )}
+          {view === "scores" && (
+            <ScoreManager
+              profileId={profileId}
+              onNotice={setNotice}
+              onChanged={refresh}
+            />
+          )}
+          {view === "trades" && (
+            <TradeManager
+              profileId={profileId}
+              onChanged={refresh}
+              onNotice={setNotice}
+            />
+          )}
+          {view === "activity" && <ActivityView profileId={profileId} />}
+        </section>
+      </main>
+    </div>
+  );
 }
 
-function useRows(table:string, params:Record<string,string>={}) {
-  const [rows,setRows]=useState<Row[]>([]); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
-  const query=useMemo(()=>JSON.stringify(params),[params]);
-  useEffect(()=>{let live=true;setLoading(true);api.list(table,JSON.parse(query)).then(data=>{if(live){setRows(data);setError('')}}).catch(err=>{if(live)setError(err.message)}).finally(()=>{if(live)setLoading(false)});return()=>{live=false}},[table,query]);
-  return {rows,loading,error,setRows};
-}
-function Metric({label,value,icon:Icon,caption}:{label:string;value:string|number;icon:typeof Users;caption:string}){return <article className="metric-card"><div className="metric-top"><span>{label}</span><Icon size={18}/></div><strong>{value}</strong><small>{caption}</small></article>}
-function PanelTitle({eyebrow,title,description,actions}:{eyebrow:string;title:string;description:string;actions?:React.ReactNode}){return <div className="panel-title"><div><p className="eyebrow">{eyebrow}</p><h2>{title}</h2><p className="muted">{description}</p></div>{actions}</div>}
-function DataTable({rows,columns,loading,empty='No records found',actions}:{rows:Row[];columns:{key:string;label:string}[];loading:boolean;empty?:string;actions?:(row:Row)=>React.ReactNode}){
-  return <div className="table-wrap"><table><thead><tr>{columns.map(c=><th key={c.key}>{c.label}</th>)}{actions&&<th>Action</th>}</tr></thead><tbody>{loading?<tr><td colSpan={columns.length+(actions?1:0)} className="empty">Loading records…</td></tr>:rows.length===0?<tr><td colSpan={columns.length+(actions?1:0)} className="empty">{empty}</td></tr>:rows.map((row,i)=><tr key={String(row.id||i)}>{columns.map(c=><td key={c.key}>{c.key==='approved'||c.key==='is_locked'||c.key==='is_active'?<span className={isTrue(row[c.key])?'badge green':'badge amber'}>{isTrue(row[c.key])?'Yes':'No'}</span>:asText(row[c.key])||'—'}</td>)}{actions&&<td>{actions(row)}</td>}</tr>)}</tbody></table></div>
-}
-
-function Overview({profileId,profiles,onNavigate}:{profileId:string;profiles:Row[];onNavigate:(v:View)=>void}){
-  const {rows:teams}=useRows('fpl_teams',{profile_id:profileId});const {rows:pending}=useRows('profiles',{approved:'0',limit:'100'});const {rows:weeks}=useRows('gameweeks',{order:'number.asc'});const {rows:trades}=useRows('trades',{profile_id:profileId,status:'pending',limit:'100'});
-  const active=weeks.find(w=>isTrue(w.is_active));
-  return <><div className="welcome-row"><div><p className="eyebrow">LEAGUE OPERATIONS / 2026 SEASON</p><h2>{asText(profiles.find(p=>String(p.id)===profileId)?.name)||'Choose a league'}</h2><p className="muted">Manage the season, keep records consistent, and review changes before they reach managers.</p></div><span className="season-pill"><span className="online-dot"/>SYSTEM ONLINE</span></div>
-    <div className="metric-grid"><Metric label="Fantasy teams" value={teams.length} icon={Users} caption="In this league"/><Metric label="Pending approvals" value={pending.length} icon={BadgeCheck} caption="Waiting for review"/><Metric label="Active gameweek" value={active?.name||'—'} icon={Clock3} caption={active?`Deadline ${asText(active.deadline||active.lock_time)}`:'No active gameweek'}/><Metric label="Pending trades" value={trades.length} icon={Swords} caption="Need a decision"/></div>
-    <div className="overview-grid"><section className="panel"><div className="panel-head"><div><p className="eyebrow">QUICK ACTIONS</p><h3>Run the league</h3></div><Bolt size={18}/></div><div className="quick-actions"><button onClick={()=>onNavigate('approvals')}><BadgeCheck/><span><b>Review signups</b><small>Approve or deny access</small></span><ArrowUpRight/></button><button onClick={()=>onNavigate('gameweeks')}><Clock3/><span><b>Manage gameweeks</b><small>Set deadlines and recalculate</small></span><ArrowUpRight/></button><button onClick={()=>onNavigate('trades')}><Swords/><span><b>Review trades</b><small>Process pending exchanges</small></span><ArrowUpRight/></button><button onClick={()=>onNavigate('leagues')}><Shield/><span><b>League rules</b><small>Budgets, chips, roster limits</small></span><ArrowUpRight/></button></div></section>
-    <section className="panel"><div className="panel-head"><div><p className="eyebrow">SEASON FLOW</p><h3>Gameweek calendar</h3></div><button className="text-button" onClick={()=>onNavigate('gameweeks')}>All weeks <ArrowUpRight size={14}/></button></div><DataTable rows={weeks.slice(0,5)} loading={false} columns={[{key:'name',label:'Gameweek'},{key:'deadline',label:'Deadline'},{key:'is_locked',label:'Locked'}]} empty="Create gameweeks to start your season"/></section></div>
-    <section className="panel"><div className="panel-head"><div><p className="eyebrow">LEAGUE STRUCTURE</p><h3>Three profiles, one API</h3></div><span className="mini-tag">{profiles.length} PROFILES</span></div><div className="profile-cards">{profiles.map(profile=><article key={String(profile.id)}><span className="profile-symbol">{asText(profile.name).slice(0,1)}</span><div><b>{asText(profile.name)}</b><small>{asText(profile.description)||'League profile'}</small></div><ArrowDownToLine size={15}/></article>)}</div></section></>;
-}
-
-function Approvals({onChanged,onNotice}:{onChanged:()=>void;onNotice:(s:string)=>void}){
-  const {rows,loading,error,setRows}=useRows('profiles',{approved:'0','neq[status]':'rejected',limit:'200'});const [working,setWorking]=useState('');
-  const decide=async(row:Row,approved:boolean)=>{if(!row.id)return;setWorking(String(row.id));try{await api.update('profiles',String(row.id),{approved,status:approved?'approved':'rejected'});setRows(rs=>rs.filter(x=>x.id!==row.id));onNotice(approved?'Account approved.':'Account access denied.');onChanged()}catch(err){onNotice((err as Error).message)}finally{setWorking('')}};
-  return <><PanelTitle eyebrow="ACCESS CONTROL" title="Account approvals" description="New manager accounts remain pending until an administrator approves them."/><div className="panel"><div className="panel-head"><h3>Waiting for approval <span className="count-pill">{rows.length}</span></h3><span className="mini-tag">{error||'APPROVAL REQUIRED'}</span></div><DataTable rows={rows} loading={loading} columns={[{key:'display_name',label:'Manager'},{key:'email',label:'Email'},{key:'created_at',label:'Requested'}]} actions={row=><div className="row-actions"><button className="icon-button approve" disabled={working===row.id} title="Approve" onClick={()=>decide(row,true)}><Check size={16}/></button><button className="icon-button deny" disabled={working===row.id} title="Deny" onClick={()=>decide(row,false)}><Ban size={16}/></button></div>}/></div></>;
-}
-
-function LeaguePage({profile,profiles,userId,canCreate,onChanged,onNotice}:{profile?:Row;profiles:Row[];userId:string;canCreate:boolean;onChanged:()=>void;onNotice:(s:string)=>void}){
-  const[name,setName]=useState('');const[description,setDescription]=useState('');const[budget,setBudget]=useState('5000');const[saving,setSaving]=useState(false);
-  const create=async(event:React.FormEvent)=>{event.preventDefault();setSaving(true);try{await api.insert('game_profiles',{id:crypto.randomUUID(),name,description,user_id:userId,starting_budget:Number(budget),weight_enabled:false,weight_trade_tolerance:0,allow_negative_points:true,roster_min:15,roster_max:18,enabled_chips:['TC','MMC'],release_cycles:['BWA1','BWA2'],created_at:new Date().toISOString()});setName('');setDescription('');onNotice('League profile created.');onChanged()}catch(err){onNotice(`Could not create league: ${(err as Error).message}`)}finally{setSaving(false)}};
-  return <>{profile?<LeagueSettings profile={profile} onChanged={onChanged} onNotice={onNotice}/>:<PanelTitle eyebrow="PROFILE CONFIGURATION" title="League profiles" description="Create a league profile before adding its teams, managers, and season rules."/>}
-    {canCreate&&<form className="panel add-form" onSubmit={create}><h3>{profiles.length?'Add another league profile':'Create the first league profile'}</h3><label>Profile name<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Description<input value={description} onChange={e=>setDescription(e.target.value)}/></label><label>Starting team budget<input type="number" min="0" value={budget} onChange={e=>setBudget(e.target.value)}/></label><button className="primary" disabled={saving||!name.trim()}>{saving?'Creating…':'Create league'}</button></form>}
-  </>;
+function useRows(table: string, params: Record<string, string> = {}) {
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const query = useMemo(() => JSON.stringify(params), [params]);
+  useEffect(() => {
+    let live = true;
+    setLoading(true);
+    api
+      .list(table, JSON.parse(query))
+      .then((data) => {
+        if (live) {
+          setRows(data);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (live) setError(err.message);
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [table, query]);
+  return { rows, loading, error, setRows };
 }
 
-function ManagerAssignments({profileId,onChanged,onNotice}:{profileId:string;onChanged:()=>void;onNotice:(s:string)=>void}){
-  const {rows:users,loading:userLoading}=useRows('profiles',{limit:'500'});
-  const {rows:teams,loading:teamLoading}=useRows('fpl_teams',{profile_id:profileId,order:'sort_order.asc'});
-  const {rows:assignments,loading:assignmentLoading}=useRows('user_team_assignments',{profile_id:profileId,limit:'500'});
-  const [userId,setUserId]=useState(''); const [teamId,setTeamId]=useState(''); const [busy,setBusy]=useState(''); const [newPassword,setNewPassword]=useState('');
-  const approvedUsers=users.filter(user=>isTrue(user.approved));
-  useEffect(()=>{if(!userId&&approvedUsers[0]?.user_id)setUserId(String(approvedUsers[0].user_id));if(!teamId&&teams[0]?.id)setTeamId(String(teams[0].id))},[approvedUsers,teams,userId,teamId]);
-  const save=async(event:React.FormEvent)=>{event.preventDefault();if(!profileId||!userId||!teamId)return;setBusy(userId);try{
-    const current=assignments.find(row=>String(row.user_id)===userId);
-    if(current&&String(current.team_id)===teamId){onNotice('This manager is already assigned to that team.');return;}
-    await api.rpc('assign_manager_to_team',{user_id:userId,profile_id:profileId,team_id:teamId});
-    onNotice('Manager assigned to the selected team.');onChanged();
-  }catch(err){onNotice(`Assignment failed: ${(err as Error).message}`)}finally{setBusy('')}};
-  const remove=async(row:Row)=>{if(!row.id)return;setBusy(String(row.id));try{await api.remove('user_team_assignments',String(row.id));onNotice('Manager assignment removed.');onChanged()}catch(err){onNotice((err as Error).message)}finally{setBusy('')}};
-  const resetPassword=async(event:React.FormEvent)=>{event.preventDefault();if(!userId)return;setBusy('password');try{await api.rpc('admin_reset_password',{user_id:userId,password:newPassword});setNewPassword('');onNotice('Password reset. Share the temporary password with the manager through your usual private channel.')}catch(err){onNotice(`Password reset failed: ${(err as Error).message}`)}finally{setBusy('')}};
-  const userName=(id:unknown)=>{const item=users.find(user=>String(user.user_id)===String(id));return asText(item?.display_name)||asText(item?.email)||String(id||'—')};
-  const teamName=(id:unknown)=>asText(teams.find(team=>String(team.id)===String(id))?.name)||String(id||'—');
-  return <><PanelTitle eyebrow="ACCOUNT ACCESS" title="Manager assignments" description="Approve manager signups, then connect each approved account to one fantasy team in the selected league."/>
-    <form className="panel add-form" onSubmit={save}><label>Approved manager<select required value={userId} onChange={e=>setUserId(e.target.value)}><option value="">Choose a manager</option>{approvedUsers.map(user=><option key={String(user.user_id)} value={String(user.user_id)}>{asText(user.display_name)||asText(user.email)} · {asText(user.email)}</option>)}</select></label><label>Fantasy team<select required value={teamId} onChange={e=>setTeamId(e.target.value)}><option value="">Choose a team</option>{teams.map(team=><option key={String(team.id)} value={String(team.id)}>{asText(team.name)}</option>)}</select></label><button className="primary" disabled={!userId||!teamId||!!busy||userLoading||teamLoading}>Assign manager</button></form>
-    <form className="panel add-form" onSubmit={resetPassword}><label>Reset an existing account password<select required value={userId} onChange={e=>setUserId(e.target.value)}><option value="">Choose an approved manager</option>{approvedUsers.map(user=><option key={String(user.user_id)} value={String(user.user_id)}>{asText(user.email)}</option>)}</select></label><label>Temporary password<input required minLength={8} type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)}/></label><button className="secondary" disabled={!userId||newPassword.length<8||!!busy}>Reset password</button></form>
-    <div className="panel"><div className="panel-head"><h3>Current assignments</h3><span className="mini-tag">ONE MANAGER PER LEAGUE PROFILE</span></div><DataTable rows={assignments.map(row=>({...row,manager:userName(row.user_id),team:teamName(row.team_id)}))} loading={assignmentLoading} columns={[{key:'manager',label:'Manager'},{key:'team',label:'Fantasy team'},{key:'created_at',label:'Assigned'}]} actions={row=><button className="text-button" disabled={busy===row.id} onClick={()=>remove(row)}>Remove</button>}/></div>
-  </>;
+function Metric({
+  label,
+  value,
+  icon: Icon,
+  caption,
+}: {
+  label: string;
+  value: string | number;
+  icon: typeof Users;
+  caption: string;
+}) {
+  return (
+    <article className="metric-card">
+      <div className="metric-top">
+        <span>{label}</span>
+        <Icon size={18} />
+      </div>
+      <strong>{value}</strong>
+      <small>{caption}</small>
+    </article>
+  );
 }
 
-function LeagueSettings({profile,onChanged,onNotice}:{profile:Row;onChanged:()=>void;onNotice:(s:string)=>void}){
-  const [form,setForm]=useState({starting_budget:asText(profile.starting_budget||5000),weight_enabled:isTrue(profile.weight_enabled),weight_trade_tolerance:asText(profile.weight_trade_tolerance||0),allow_negative_points:isTrue(profile.allow_negative_points),roster_min:asText(profile.roster_min||15),roster_max:asText(profile.roster_max||18),enabled_chips:asText(profile.enabled_chips||'[]'),release_cycles:asText(profile.release_cycles||'[]')});const [saving,setSaving]=useState(false);
-  useEffect(()=>setForm({starting_budget:asText(profile.starting_budget||5000),weight_enabled:isTrue(profile.weight_enabled),weight_trade_tolerance:asText(profile.weight_trade_tolerance||0),allow_negative_points:isTrue(profile.allow_negative_points),roster_min:asText(profile.roster_min||15),roster_max:asText(profile.roster_max||18),enabled_chips:asText(profile.enabled_chips||'[]'),release_cycles:asText(profile.release_cycles||'[]')}),[profile.id]);
-  const save=async(e:React.FormEvent)=>{e.preventDefault();if(!profile.id)return;setSaving(true);try{const payload={...form,starting_budget:Number(form.starting_budget),weight_trade_tolerance:Number(form.weight_trade_tolerance),roster_min:Number(form.roster_min),roster_max:Number(form.roster_max),enabled_chips:JSON.parse(form.enabled_chips),release_cycles:JSON.parse(form.release_cycles)};await api.update('game_profiles',String(profile.id),payload);onNotice('League settings saved.');onChanged()}catch(err){onNotice(`Could not save: ${(err as Error).message}`)}finally{setSaving(false)}};
-  const set=(key:string,value:unknown)=>setForm(f=>({...f,[key]:value}));
-  return <><PanelTitle eyebrow="PROFILE CONFIGURATION" title={asText(profile.name)} description="These values control the rules stored for this league profile."/><form className="panel settings-form" onSubmit={save}><div className="field-grid"><label>Starting budget<input type="number" min="0" value={form.starting_budget} onChange={e=>set('starting_budget',e.target.value)}/></label><label>Minimum roster<input type="number" min="1" max="18" value={form.roster_min} onChange={e=>set('roster_min',e.target.value)}/></label><label>Maximum roster<input type="number" min="1" max="18" value={form.roster_max} onChange={e=>set('roster_max',e.target.value)}/></label><label>Weight trade tolerance<input type="number" min="0" step="0.1" value={form.weight_trade_tolerance} onChange={e=>set('weight_trade_tolerance',e.target.value)}/></label></div><div className="toggle-grid"><label className="toggle-row"><span><b>Weight system</b><small>Use Area 51 tier weights and trade balance rule</small></span><input type="checkbox" checked={form.weight_enabled} onChange={e=>set('weight_enabled',e.target.checked)}/></label><label className="toggle-row"><span><b>Allow negative points</b><small>Turn off for Mandem's no-negative scoring</small></span><input type="checkbox" checked={form.allow_negative_points} onChange={e=>set('allow_negative_points',e.target.checked)}/></label></div><div className="field-grid"><label className="span-2">Enabled chips <small>JSON list, e.g. ["TC","MMC"]</small><textarea rows={2} value={form.enabled_chips} onChange={e=>set('enabled_chips',e.target.value)}/></label><label className="span-2">Release cycles <small>JSON list</small><textarea rows={2} value={form.release_cycles} onChange={e=>set('release_cycles',e.target.value)}/></label></div><button className="primary" disabled={saving}>{saving?'Saving…':'Save profile settings'}</button></form></>;
+function PanelTitle({
+  eyebrow,
+  title,
+  description,
+  actions,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="panel-title">
+      <div>
+        <p className="eyebrow">{eyebrow}</p>
+        <h2>{title}</h2>
+        <p className="muted">{description}</p>
+      </div>
+      {actions}
+    </div>
+  );
 }
 
-function TeamManager({profileId,canManage,onChanged,onNotice}:{profileId:string;canManage:boolean;onChanged:()=>void;onNotice:(s:string)=>void}){const{rows,loading}=useRows('fpl_teams',{profile_id:profileId,order:'sort_order.asc'});const[franchises]=useRows('ipl_teams');const{rows:profileRows}=useRows('game_profiles',{id:profileId,limit:'1'});const startingBudget=Number(profileRows[0]?.starting_budget)||5000;const[adding,setAdding]=useState(false);const[saving,setSaving]=useState(false);const[form,setForm]=useState({name:'',owner:'',budget:'5000',ipl_team_id:''});useEffect(()=>{if(!form.ipl_team_id&&franchises[0]?.id)setForm(f=>({...f,ipl_team_id:String(franchises[0].id)}));if(form.budget==='5000'&&startingBudget!==5000)setForm(f=>({...f,budget:String(startingBudget)}))},[franchises,form.ipl_team_id,form.budget,startingBudget]);const add=async(event:React.FormEvent)=>{event.preventDefault();setSaving(true);try{await api.insert('fpl_teams',{id:crypto.randomUUID(),profile_id:profileId,name:form.name,owner:form.owner,budget:Number(form.budget),ipl_team_id:form.ipl_team_id,starting_xi:[],substitutes:[],chips:{},sort_order:rows.length,created_at:new Date().toISOString()});setForm({name:'',owner:'',budget:String(startingBudget),ipl_team_id:franchises[0]?.id?String(franchises[0].id):''});setAdding(false);onNotice('Fantasy team created. Assign its manager from Managers & teams.');onChanged()}catch(err){onNotice(`Could not create team: ${(err as Error).message}`)}finally{setSaving(false)}};return <><PanelTitle eyebrow="SQUAD MANAGEMENT" title="Fantasy teams" description="Review league rosters, budgets, owners, and franchise assignments." actions={canManage&&<button className="primary" onClick={()=>setAdding(v=>!v)}><Plus size={14}/> Add team</button>}/>{adding&&<form className="panel add-form" onSubmit={add}><label>Team name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Manager display name<input value={form.owner} onChange={e=>setForm({...form,owner:e.target.value})}/></label><label>Starting budget<input type="number" min="0" value={form.budget} onChange={e=>setForm({...form,budget:e.target.value})}/></label><label>IPL franchise<select value={form.ipl_team_id} onChange={e=>setForm({...form,ipl_team_id:e.target.value})}><option value="">None</option>{franchises.map(team=><option key={String(team.id)} value={String(team.id)}>{asText(team.name)}</option>)}</select></label><button className="primary" disabled={saving||!profileId}>{saving?'Creating…':'Create fantasy team'}</button></form>}<div className="panel"><DataTable rows={rows} loading={loading} columns={[{key:'name',label:'Fantasy team'},{key:'owner',label:'Manager'},{key:'budget',label:'Budget'},{key:'squad_value',label:'Squad value'},{key:'ipl_team_id',label:'IPL franchise'}]}/></div></>}
-function PlayerManager({canManage,onChanged,onNotice}:{canManage:boolean;onChanged:()=>void;onNotice:(s:string)=>void}){const{rows,loading}=useRows('players',{order:'name.asc',limit:'500'});const{rows:franchises,loading:franchiseLoading}=useRows('ipl_teams',{order:'name.asc'});const[adding,setAdding]=useState(false);const[addingFranchise,setAddingFranchise]=useState(false);const[saving,setSaving]=useState(false);const[form,setForm]=useState({name:'',role:'BAT',ipl_team_id:'',tier:'glass',weight:'0',base_price:'10'});const[franchise,setFranchise]=useState({id:'',name:'',short:'',color:'#1D4ED8'});const add=async(e:React.FormEvent)=>{e.preventDefault();setSaving(true);try{await api.insert('players',{id:`p${Date.now()}`,name:form.name,role:form.role,ipl_team_id:form.ipl_team_id,tier:form.tier,weight:Number(form.weight),base_price:Number(form.base_price)});setAdding(false);setForm({...form,name:''});onNotice('Player added to the catalog.');onChanged()}catch(err){onNotice((err as Error).message)}finally{setSaving(false)}};const addFranchise=async(e:React.FormEvent)=>{e.preventDefault();setSaving(true);try{await api.insert('ipl_teams',{id:franchise.id.trim().toLowerCase(),name:franchise.name,short:franchise.short.toUpperCase(),color:franchise.color,wins:0,losses:0,match_results:[]});setFranchise({id:'',name:'',short:'',color:'#1D4ED8'});setAddingFranchise(false);onNotice('IPL franchise added.');onChanged()}catch(err){onNotice(`Could not add franchise: ${(err as Error).message}`)}finally{setSaving(false)}};return <><PanelTitle eyebrow="AUCTION POOL" title="Player pool" description="Maintain the IPL franchise catalog and the player catalog used by auctions and scoring." actions={canManage&&<><button className="secondary" onClick={()=>setAddingFranchise(v=>!v)}><Plus size={14}/> Add franchise</button><button className="primary" onClick={()=>setAdding(v=>!v)}><Plus size={14}/> Add player</button></>}/>{addingFranchise&&<form className="panel add-form" onSubmit={addFranchise}><h3>New IPL franchise</h3><label>Short ID<input required placeholder="csk" value={franchise.id} onChange={e=>setFranchise({...franchise,id:e.target.value})}/></label><label>Team name<input required value={franchise.name} onChange={e=>setFranchise({...franchise,name:e.target.value})}/></label><label>Short name<input required maxLength={20} value={franchise.short} onChange={e=>setFranchise({...franchise,short:e.target.value})}/></label><label>Color<input type="color" value={franchise.color} onChange={e=>setFranchise({...franchise,color:e.target.value})}/></label><button className="primary" disabled={saving}>{saving?'Adding…':'Save franchise'}</button></form>}{adding&&<form className="panel add-form" onSubmit={add}><label>Player name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Role<select value={form.role} onChange={e=>setForm({...form,role:e.target.value})}><option>BAT</option><option>WK</option><option>BOWL</option><option>AR</option><option>TEAM</option></select></label><label>IPL franchise<select required value={form.ipl_team_id} onChange={e=>setForm({...form,ipl_team_id:e.target.value})}><option value="">Choose franchise</option>{franchises.map(team=><option key={String(team.id)} value={String(team.id)}>{asText(team.name)}</option>)}</select></label><label>Tier<select value={form.tier} onChange={e=>setForm({...form,tier:e.target.value})}><option>glass</option><option>bronze</option><option>silver</option><option>gold</option><option>platinum</option></select></label><label>Weight<input type="number" min="0" max="5" value={form.weight} onChange={e=>setForm({...form,weight:e.target.value})}/></label><label>Base price<input type="number" min="0" value={form.base_price} onChange={e=>setForm({...form,base_price:e.target.value})}/></label><button className="primary" disabled={saving||franchiseLoading||franchises.length===0}>{saving?'Adding…':'Save player'}</button></form>}<div className="panel"><div className="panel-head"><h3>IPL franchises</h3></div><DataTable rows={franchises} loading={franchiseLoading} columns={[{key:'id',label:'ID'},{key:'name',label:'Franchise'},{key:'short',label:'Short name'},{key:'color',label:'Color'}]}/></div><div className="panel"><DataTable rows={rows} loading={loading} columns={[{key:'name',label:'Player'},{key:'role',label:'Role'},{key:'ipl_team_id',label:'Franchise'},{key:'tier',label:'Tier'},{key:'weight',label:'Weight'},{key:'base_price',label:'Base price'}]}/></div></>}
-
-function AuctionDesk({profileId,onChanged,onNotice}:{profileId:string;onChanged:()=>void;onNotice:(s:string)=>void}){
-  const{rows:teams}=useRows('fpl_teams',{profile_id:profileId,order:'sort_order.asc'});
-  const{rows:players}=useRows('players',{order:'name.asc',limit:'1000'});
-  const{rows:assignments}=useRows('player_assignments',{profile_id:profileId});
-  const[teamId,setTeamId]=useState('');const[playerId,setPlayerId]=useState('');const[price,setPrice]=useState('');const[filter,setFilter]=useState('');const[busy,setBusy]=useState(false);
-  const unassigned=useMemo(()=>players.filter(p=>!assignments.some(a=>String(a.player_id)===String(p.id))&&asText(p.name).toLowerCase().includes(filter.toLowerCase())),[players,assignments,filter]);
-  useEffect(()=>{if(!teamId&&teams[0]?.id)setTeamId(String(teams[0].id));if(!unassigned.some(p=>String(p.id)===playerId)&&unassigned[0]?.id)setPlayerId(String(unassigned[0].id))},[teams,unassigned,teamId,playerId]);
-  const selectedPlayer=players.find(p=>String(p.id)===playerId);const selectedTeam=teams.find(t=>String(t.id)===teamId);
-  useEffect(()=>{if(selectedPlayer)setPrice(asText(selectedPlayer.base_price||0))},[playerId]);
-  const sell=async(e:React.FormEvent)=>{e.preventDefault();if(!teamId||!playerId)return;setBusy(true);try{await api.rpc('execute_auction_sale',{profile_id:profileId,team_id:teamId,player_id:playerId,price:Number(price)});onNotice(`${asText(selectedPlayer?.name)} sold to ${asText(selectedTeam?.name)} for ${price}.`);setPlayerId('');onChanged()}catch(err){onNotice((err as Error).message)}finally{setBusy(false)}};
-  return <><PanelTitle eyebrow="LIVE AUCTION" title="Auction desk" description="Record a sale through the atomic Laravel endpoint. Budget, ownership, base price, and roster caps are validated on the server."/><div className="auction-grid"><form className="panel auction-form" onSubmit={sell}><div className="panel-head"><div><p className="eyebrow">SALE RECORDER</p><h3>Assign an unsold asset</h3></div><Gavel size={18}/></div><label>Fantasy team<select required value={teamId} onChange={e=>setTeamId(e.target.value)}>{teams.map(t=><option value={String(t.id)} key={String(t.id)}>{asText(t.name)} · budget {asText(t.budget)}</option>)}</select></label><label>Search player pool<input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Filter by player or franchise"/></label><label>Player<select required value={playerId} onChange={e=>setPlayerId(e.target.value)}>{unassigned.map(p=><option value={String(p.id)} key={String(p.id)}>{asText(p.name)} · {asText(p.role)} · base {asText(p.base_price)}</option>)}</select></label><label>Sale price<input required min={selectedPlayer?.base_price||0} type="number" value={price} onChange={e=>setPrice(e.target.value)}/></label><button className="primary" disabled={busy||!selectedPlayer||!selectedTeam}>{busy?'Recording…':'Confirm sale'}</button></form><section className="panel auction-summary"><p className="eyebrow">PURCHASE CHECK</p><h3>{asText(selectedPlayer?.name)||'Select a player'}</h3><div className="summary-line"><span>Buyer</span><b>{asText(selectedTeam?.name)||'—'}</b></div><div className="summary-line"><span>Current budget</span><b>{asText(selectedTeam?.budget)||'—'}</b></div><div className="summary-line"><span>Base price</span><b>{asText(selectedPlayer?.base_price)||'—'}</b></div><div className="summary-line total"><span>Budget after sale</span><b>{selectedTeam?Number(selectedTeam.budget||0)-Number(price||0):'—'}</b></div><p className="hint"><Shield size={15}/> IPL franchises count as auction assets and do not use one of the 15–18 player slots.</p></section></div><section className="panel"><div className="panel-head"><div><p className="eyebrow">AVAILABLE ASSETS</p><h3>Unsold pool <span className="count-pill">{unassigned.length}</span></h3></div></div><DataTable rows={unassigned.slice(0,50)} loading={false} columns={[{key:'name',label:'Player / asset'},{key:'role',label:'Role'},{key:'ipl_team_id',label:'Franchise'},{key:'tier',label:'Tier'},{key:'base_price',label:'Base price'}]}/></section></>;
+function DataTable({
+  rows,
+  columns,
+  loading,
+  empty = "No records found",
+  actions,
+}: {
+  rows: Row[];
+  columns: {
+    key: string;
+    label: string;
+  }[];
+  loading: boolean;
+  empty?: string;
+  actions?: (row: Row) => React.ReactNode;
+}) {
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            {columns.map((c) => (
+              <th key={c.key}>{c.label}</th>
+            ))}
+            {actions && <th>Action</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <tr>
+              <td
+                colSpan={columns.length + (actions ? 1 : 0)}
+                className="empty"
+              >
+                Loading records…
+              </td>
+            </tr>
+          ) : rows.length === 0 ? (
+            <tr>
+              <td
+                colSpan={columns.length + (actions ? 1 : 0)}
+                className="empty"
+              >
+                {empty}
+              </td>
+            </tr>
+          ) : (
+            rows.map((row, i) => (
+              <tr key={String(row.id || i)}>
+                {columns.map((c) => (
+                  <td key={c.key}>
+                    {c.key === "approved" ||
+                      c.key === "is_locked" ||
+                      c.key === "is_active" ? (
+                      <span
+                        className={
+                          isTrue(row[c.key]) ? "badge green" : "badge amber"
+                        }
+                      >
+                        {isTrue(row[c.key]) ? "Yes" : "No"}
+                      </span>
+                    ) : (
+                      asText(row[c.key]) || "—"
+                    )}
+                  </td>
+                ))}
+                {actions && <td>{actions(row)}</td>}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
-function GameweekManager({profileId,canManage,onChanged,onNotice}:{profileId:string;canManage:boolean;onChanged:()=>void;onNotice:(s:string)=>void}){
-  const{rows,loading}=useRows('gameweeks',{order:'number.asc'});const[busy,setBusy]=useState('');const[adding,setAdding]=useState(false);const[saving,setSaving]=useState(false);const nextNumber=Math.max(0,...rows.map(r=>Number(r.number)||0))+1;const[form,setForm]=useState({name:`Gameweek ${nextNumber}`,deadline:'',game_count:'1'});
-  const update=async(row:Row,patch:Row)=>{if(!row.id)return;setBusy(String(row.id));try{await api.update('gameweeks',String(row.id),patch);onNotice('Gameweek updated.');onChanged()}catch(err){onNotice((err as Error).message)}finally{setBusy('')}};
-  const recalc=async(row:Row)=>{if(!row.id)return;setBusy(`score-${row.id}`);try{await api.recalculate(profileId,String(row.id));onNotice(`Scores recalculated for ${asText(row.name)}.`)}catch(err){onNotice((err as Error).message)}finally{setBusy('')}};
-  const setActive=async(row:Row)=>{if(!row.id)return;setBusy(String(row.id));try{await api.rpc('set_active_gameweek',{gameweek_id:row.id});onNotice(`${asText(row.name)} is active.`);onChanged()}catch(err){onNotice((err as Error).message)}finally{setBusy('')}};
-  const add=async(e:React.FormEvent)=>{e.preventDefault();setSaving(true);try{const id=`gw${nextNumber}`;const deadline=form.deadline.replace('T',' ')+':00';await api.insert('gameweeks',{id,name:form.name,number:nextNumber,deadline,lock_time:deadline,game_count:Number(form.game_count),is_active:false,is_locked:false,is_complete:false});setAdding(false);setForm({name:`Gameweek ${nextNumber+1}`,deadline:'',game_count:'1'});onNotice('Gameweek created.');onChanged()}catch(err){onNotice((err as Error).message)}finally{setSaving(false)}};
-  return <><PanelTitle eyebrow="SCHEDULE & DEADLINES" title="Gameweeks" description="Set the active week and deadline. Deadline locks snapshot every team's submitted lineup." actions={canManage&&<button className="primary" onClick={()=>setAdding(v=>!v)}><Plus size={14}/> Add gameweek</button>}/>{adding&&<form className="panel add-form" onSubmit={add}><label>Week name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Deadline<input required type="datetime-local" value={form.deadline} onChange={e=>setForm({...form,deadline:e.target.value})}/></label><label>Match count<input min="1" type="number" value={form.game_count} onChange={e=>setForm({...form,game_count:e.target.value})}/></label><button className="primary" disabled={saving}>{saving?'Creating…':'Create week'}</button></form>}<div className="panel"><DataTable rows={rows} loading={loading} columns={[{key:'number',label:'Week'},{key:'name',label:'Name'},{key:'deadline',label:'Deadline'},{key:'is_active',label:'Active'},{key:'is_locked',label:'Locked'}]} actions={row=><div className="row-actions">{canManage&&<button className="text-button" disabled={busy===row.id||isTrue(row.is_locked)} onClick={()=>setActive(row)}>Set active</button>}<button className="text-button" disabled={busy===`score-${row.id}`} onClick={()=>recalc(row)}>{busy===`score-${row.id}`?'Working…':'Recalculate'}</button>{canManage&&<button className="text-button" disabled={busy===row.id||!isTrue(row.is_locked)} onClick={()=>update(row,{is_locked:false,admin_override_unlocked:true})}>Unlock</button>}</div>}/></div><p className="hint"><Shield size={15}/> Each deadline lock snapshots the current submitted lineup and preserves a backup.</p></>;
-}
-function ScoreManager({profileId,onNotice,onChanged}:{profileId:string;onNotice:(s:string)=>void;onChanged:()=>void}){
-  const{rows,loading}=useRows('team_gw_scores',{profile_id:profileId,order:'points.desc',limit:'200'});
-  const{rows:stats,loading:statsLoading}=useRows('player_match_stats',{profile_id:profileId,order:'gameweek_id.desc',limit:'500'});
-  const{rows:players}=useRows('players',{order:'name.asc',limit:'1000'});const{rows:weeks}=useRows('gameweeks',{order:'number.asc'});
-  const[gameweekId,setGameweekId]=useState('');const[playerId,setPlayerId]=useState('');const[matchNumber,setMatchNumber]=useState('1');const[values,setValues]=useState({runs:'0',balls:'0',wickets:'0',overs_bowled:'0',runs_conceded:'0',maidens:'0',catches:'0',stumpings:'0',run_outs:'0',direct_run_outs:'0',split_run_outs:'0',fours:'0',sixes:'0',hat_tricks:'0'});const[flags,setFlags]=useState({is_out:true,is_dnp:false,team_win:false,motm:false,six_sixes:false,super_over:false});const[saving,setSaving]=useState(false);
-  useEffect(()=>{if(!gameweekId&&weeks[0]?.id)setGameweekId(String(weeks[0].id));if(!playerId&&players[0]?.id)setPlayerId(String(players[0].id))},[gameweekId,playerId,weeks,players]);
-  const addStats=async(event:React.FormEvent)=>{event.preventDefault();if(!profileId||!gameweekId||!playerId)return;setSaving(true);try{await api.insert('player_match_stats',{id:crypto.randomUUID(),profile_id:profileId,gameweek_id:gameweekId,player_id:playerId,match_number:Number(matchNumber)||1,...Object.fromEntries(Object.entries(values).map(([k,v])=>[k,Number(v)||0])),...flags,participation_type:flags.is_dnp?'not_played':'played',created_at:new Date().toISOString()});onNotice('Player match stats saved. Recalculate the gameweek after entering all match results.');onChanged()}catch(err){onNotice(`Could not save match stats: ${(err as Error).message}`)}finally{setSaving(false)}};
-  const playerName=(id:unknown)=>asText(players.find(p=>String(p.id)===String(id))?.name)||String(id||'—');
-  return <><PanelTitle eyebrow="OFFICIAL RESULTS" title="Scores & match data" description="Enter scorecard facts for the selected league. Laravel calculates fantasy points and ranks from these facts."/>
-    <form className="panel add-form" onSubmit={addStats}><h3>Enter one player's match line</h3><label>Gameweek<select required value={gameweekId} onChange={e=>setGameweekId(e.target.value)}>{weeks.map(w=><option key={String(w.id)} value={String(w.id)}>{asText(w.name)}</option>)}</select></label><label>Player<select required value={playerId} onChange={e=>setPlayerId(e.target.value)}>{players.map(p=><option key={String(p.id)} value={String(p.id)}>{asText(p.name)}</option>)}</select></label><label>Match number<input type="number" min="1" value={matchNumber} onChange={e=>setMatchNumber(e.target.value)}/></label><div className="field-grid">{Object.entries(values).map(([key,value])=><label key={key}>{key.replaceAll('_',' ')}<input type="number" min="0" step={key==='overs_bowled'?'0.1':'1'} value={value} onChange={e=>setValues(v=>({...v,[key]:e.target.value}))}/></label>)}</div><div className="toggle-grid">{Object.entries(flags).map(([key,value])=><label className="toggle-row" key={key}><span>{key.replaceAll('_',' ')}</span><input type="checkbox" checked={value} onChange={e=>setFlags(current=>({...current,[key]:e.target.checked}))}/></label>)}</div><button className="primary" disabled={saving||!profileId||!gameweekId||!playerId}>{saving?'Saving…':'Save match facts'}</button></form>
-    <div className="panel"><div className="panel-head"><h3>Entered player match data</h3></div><DataTable rows={stats.map(row=>({...row,player_name:playerName(row.player_id)}))} loading={statsLoading} columns={[{key:'gameweek_id',label:'Gameweek'},{key:'match_number',label:'Match'},{key:'player_name',label:'Player'},{key:'runs',label:'Runs'},{key:'balls',label:'Balls'},{key:'wickets',label:'Wickets'},{key:'overs_bowled',label:'Overs'},{key:'runs_conceded',label:'Conceded'},{key:'catches',label:'Catches'}]}/></div>
-    <div className="panel"><div className="panel-head"><h3>Calculated team totals</h3></div><DataTable rows={rows} loading={loading} columns={[{key:'gameweek_id',label:'Gameweek'},{key:'team_id',label:'Team ID'},{key:'points',label:'Week points'},{key:'total_points',label:'Season points'},{key:'rank',label:'Rank'},{key:'chip_applied',label:'Chip'}]}/></div><AdminBonusManager profileId={profileId} onChanged={onChanged} onNotice={onNotice}/></>;
+function Overview({
+  profileId,
+  profiles,
+  onNavigate,
+}: {
+  profileId: string;
+  profiles: Row[];
+  onNavigate: (v: View) => void;
+}) {
+  const { rows: teams } = useRows("fpl_teams", { profile_id: profileId });
+  const { rows: pending } = useRows("profiles", {
+    approved: "0",
+    limit: "100",
+  });
+  const { rows: weeks } = useRows("gameweeks", { order: "number.asc" });
+  const { rows: trades } = useRows("trades", {
+    profile_id: profileId,
+    status: "pending",
+    limit: "100",
+  });
+  const active = weeks.find((w) => isTrue(w.is_active));
+  return (
+    <>
+      <div className="welcome-row">
+        <div>
+          <p className="eyebrow">LEAGUE OPERATIONS / 2026 SEASON</p>
+          <h2>
+            {asText(profiles.find((p) => String(p.id) === profileId)?.name) ||
+              "Choose a league"}
+          </h2>
+          <p className="muted">
+            Manage the season, keep records consistent, and review changes
+            before they reach managers.
+          </p>
+        </div>
+        <span className="season-pill">
+          <span className="online-dot" />
+          SYSTEM ONLINE
+        </span>
+      </div>
+      <div className="metric-grid">
+        <Metric
+          label="Fantasy teams"
+          value={teams.length}
+          icon={Users}
+          caption="In this league"
+        />
+        <Metric
+          label="Pending approvals"
+          value={pending.length}
+          icon={BadgeCheck}
+          caption="Waiting for review"
+        />
+        <Metric
+          label="Active gameweek"
+          value={active?.name || "—"}
+          icon={Clock3}
+          caption={
+            active
+              ? `Deadline ${asText(active.deadline || active.lock_time)}`
+              : "No active gameweek"
+          }
+        />
+        <Metric
+          label="Pending trades"
+          value={trades.length}
+          icon={Swords}
+          caption="Need a decision"
+        />
+      </div>
+      <div className="overview-grid">
+        <section className="panel">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">QUICK ACTIONS</p>
+              <h3>Run the league</h3>
+            </div>
+            <Bolt size={18} />
+          </div>
+          <div className="quick-actions">
+            <button onClick={() => onNavigate("approvals")}>
+              <BadgeCheck />
+              <span>
+                <b>Review signups</b>
+                <small>Approve or deny access</small>
+              </span>
+              <ArrowUpRight />
+            </button>
+            <button onClick={() => onNavigate("gameweeks")}>
+              <Clock3 />
+              <span>
+                <b>Manage gameweeks</b>
+                <small>Set deadlines and recalculate</small>
+              </span>
+              <ArrowUpRight />
+            </button>
+            <button onClick={() => onNavigate("trades")}>
+              <Swords />
+              <span>
+                <b>Review trades</b>
+                <small>Process pending exchanges</small>
+              </span>
+              <ArrowUpRight />
+            </button>
+            <button onClick={() => onNavigate("leagues")}>
+              <Shield />
+              <span>
+                <b>League rules</b>
+                <small>Budgets, chips, roster limits</small>
+              </span>
+              <ArrowUpRight />
+            </button>
+          </div>
+        </section>
+        <section className="panel">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">SEASON FLOW</p>
+              <h3>Gameweek calendar</h3>
+            </div>
+            <button
+              className="text-button"
+              onClick={() => onNavigate("gameweeks")}
+            >
+              All weeks <ArrowUpRight size={14} />
+            </button>
+          </div>
+          <DataTable
+            rows={weeks.slice(0, 5)}
+            loading={false}
+            columns={[
+              { key: "name", label: "Gameweek" },
+              { key: "deadline", label: "Deadline" },
+              { key: "is_locked", label: "Locked" },
+            ]}
+            empty="Create gameweeks to start your season"
+          />
+        </section>
+      </div>
+      <section className="panel">
+        <div className="panel-head">
+          <div>
+            <p className="eyebrow">LEAGUE STRUCTURE</p>
+            <h3>Three profiles, one API</h3>
+          </div>
+          <span className="mini-tag">{profiles.length} PROFILES</span>
+        </div>
+        <div className="profile-cards">
+          {profiles.map((profile) => (
+            <article key={String(profile.id)}>
+              <span className="profile-symbol">
+                {asText(profile.name).slice(0, 1)}
+              </span>
+              <div>
+                <b>{asText(profile.name)}</b>
+                <small>{asText(profile.description) || "League profile"}</small>
+              </div>
+              <ArrowDownToLine size={15} />
+            </article>
+          ))}
+        </div>
+      </section>
+    </>
+  );
 }
 
-function AdminBonusManager({profileId,onChanged,onNotice}:{profileId:string;onChanged:()=>void;onNotice:(s:string)=>void}){
-  const{rows,loading}=useRows('admin_bonuses',{profile_id:profileId,order:'created_at.desc',limit:'200'});const{rows:teams}=useRows('fpl_teams',{profile_id:profileId});const{rows:weeks}=useRows('gameweeks',{order:'number.asc'});
-  const[teamId,setTeamId]=useState('');const[weekId,setWeekId]=useState('');const[points,setPoints]=useState('150');const[note,setNote]=useState('');const[saving,setSaving]=useState(false);
-  useEffect(()=>{if(!teamId&&teams[0]?.id)setTeamId(String(teams[0].id));if(!weekId&&weeks[0]?.id)setWeekId(String(weeks[0].id))},[teamId,weekId,teams,weeks]);
-  const add=async(event:React.FormEvent)=>{event.preventDefault();setSaving(true);try{await api.insert('admin_bonuses',{id:crypto.randomUUID(),profile_id:profileId,team_id:teamId,gameweek_id:weekId,points:Number(points),note,created_at:new Date().toISOString()});setNote('');onNotice('Point adjustment recorded. Recalculate the gameweek to include it.');onChanged()}catch(err){onNotice(`Could not record adjustment: ${(err as Error).message}`)}finally{setSaving(false)}};
-  return <><form className="panel add-form" onSubmit={add}><h3>Record an admin point adjustment</h3><p className="muted">Use for documented league adjustments and Straddle outcomes (usually +150 or −150).</p><label>Fantasy team<select required value={teamId} onChange={e=>setTeamId(e.target.value)}>{teams.map(team=><option key={String(team.id)} value={String(team.id)}>{asText(team.name)}</option>)}</select></label><label>Gameweek<select required value={weekId} onChange={e=>setWeekId(e.target.value)}>{weeks.map(week=><option key={String(week.id)} value={String(week.id)}>{asText(week.name)}</option>)}</select></label><label>Points (positive or negative)<input required type="number" value={points} onChange={e=>setPoints(e.target.value)}/></label><label>Reason<input required value={note} onChange={e=>setNote(e.target.value)}/></label><button className="primary" disabled={saving||!teamId||!weekId}>{saving?'Saving…':'Record adjustment'}</button></form><div className="panel"><div className="panel-head"><h3>Recorded adjustments</h3></div><DataTable rows={rows} loading={loading} columns={[{key:'gameweek_id',label:'Gameweek'},{key:'team_id',label:'Team ID'},{key:'points',label:'Points'},{key:'note',label:'Reason'}]}/></div></>;
+function Approvals({
+  onChanged,
+  onNotice,
+}: {
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows, loading, error, setRows } = useRows("profiles", {
+    approved: "0",
+    "neq[status]": "rejected",
+    limit: "200",
+  });
+  const [working, setWorking] = useState("");
+  const decide = async (row: Row, approved: boolean) => {
+    if (!row.id) return;
+    setWorking(String(row.id));
+    try {
+      await api.update("profiles", String(row.id), {
+        approved,
+        status: approved ? "approved" : "rejected",
+      });
+      setRows((rs) => rs.filter((x) => x.id !== row.id));
+      onNotice(approved ? "Account approved." : "Account access denied.");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setWorking("");
+    }
+  };
+  return (
+    <>
+      <PanelTitle
+        eyebrow="ACCESS CONTROL"
+        title="Account approvals"
+        description="New manager accounts remain pending until an administrator approves them."
+      />
+      <div className="panel">
+        <div className="panel-head">
+          <h3>
+            Waiting for approval{" "}
+            <span className="count-pill">{rows.length}</span>
+          </h3>
+          <span className="mini-tag">{error || "APPROVAL REQUIRED"}</span>
+        </div>
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "display_name", label: "Manager" },
+            { key: "email", label: "Email" },
+            { key: "created_at", label: "Requested" },
+          ]}
+          actions={(row) => (
+            <div className="row-actions">
+              <button
+                className="icon-button approve"
+                disabled={working === row.id}
+                title="Approve"
+                onClick={() => decide(row, true)}
+              >
+                <Check size={16} />
+              </button>
+              <button
+                className="icon-button deny"
+                disabled={working === row.id}
+                title="Deny"
+                onClick={() => decide(row, false)}
+              >
+                <Ban size={16} />
+              </button>
+            </div>
+          )}
+        />
+      </div>
+    </>
+  );
 }
-function TradeManager({profileId,onChanged,onNotice}:{profileId:string;onChanged:()=>void;onNotice:(s:string)=>void}){const{rows,loading,setRows}=useRows('trades',{profile_id:profileId,order:'created_at.desc',limit:'200'});const[busy,setBusy]=useState('');const execute=async(row:Row)=>{if(!row.id)return;setBusy(String(row.id));try{await api.rpc('execute_trade',{trade_id:row.id});setRows(rs=>rs.map(x=>x.id===row.id?{...x,status:'accepted'}:x));onNotice('Trade accepted and processed.');onChanged()}catch(err){onNotice((err as Error).message)}finally{setBusy('')}};const cancel=async(row:Row)=>{if(!row.id)return;setBusy(String(row.id));try{await api.rpc('admin_cancel_trade',{trade_id:row.id});setRows(rs=>rs.map(x=>x.id===row.id?{...x,status:'cancelled'}:x));onNotice('Pending trade cancelled.');onChanged()}catch(err){onNotice((err as Error).message)}finally{setBusy('')}};return <><PanelTitle eyebrow="TRANSFERS & LOANS" title="Trade review" description="Accept valid pending exchanges or cancel an offer. Laravel applies ownership, budget, roster, and weight checks."/><div className="panel"><DataTable rows={rows} loading={loading} columns={[{key:'created_at',label:'Created'},{key:'type',label:'Type'},{key:'from_team_id',label:'From team'},{key:'to_team_id',label:'To team'},{key:'status',label:'Status'},{key:'cash_from',label:'Cash from'},{key:'cash_to',label:'Cash to'}]} actions={row=>asText(row.status)==='pending'?<div className="row-actions"><button className="primary small" disabled={busy===row.id} onClick={()=>execute(row)}>{busy===row.id?'Working…':'Accept'}</button><button className="text-button" disabled={busy===row.id} onClick={()=>cancel(row)}>Cancel</button></div>:<span className="muted">—</span>}/></div></>}
-function ActivityView({profileId}:{profileId:string}){const{rows,loading}=useRows('league_activity_log',{profile_id:profileId,order:'created_at.desc',limit:'200'});return <><PanelTitle eyebrow="AUDIT TRAIL" title="League activity" description="Recent changes recorded by the league API."/><div className="panel"><DataTable rows={rows} loading={loading} columns={[{key:'created_at',label:'Time'},{key:'activity_type',label:'Type'},{key:'description',label:'Activity'},{key:'user_id',label:'Actor'}]}/></div></>}
+
+function LeaguePage({
+  profile,
+  profiles,
+  userId,
+  canCreate,
+  onChanged,
+  onNotice,
+}: {
+  profile?: Row;
+  profiles: Row[];
+  userId: string;
+  canCreate: boolean;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [budget, setBudget] = useState("5000");
+  const [saving, setSaving] = useState(false);
+  const create = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await api.insert("game_profiles", {
+        id: crypto.randomUUID(),
+        name,
+        description,
+        user_id: userId,
+        starting_budget: Number(budget),
+        weight_enabled: false,
+        weight_trade_tolerance: 0,
+        allow_negative_points: true,
+        roster_min: 15,
+        roster_max: 18,
+        enabled_chips: ["TC", "MMC"],
+        release_cycles: ["BWA1", "BWA2"],
+        created_at: new Date().toISOString(),
+      });
+      setName("");
+      setDescription("");
+      onNotice("League profile created.");
+      onChanged();
+    } catch (err) {
+      onNotice(`Could not create league: ${(err as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <>
+      {profile ? (
+        <LeagueSettings
+          profile={profile}
+          onChanged={onChanged}
+          onNotice={onNotice}
+        />
+      ) : (
+        <PanelTitle
+          eyebrow="PROFILE CONFIGURATION"
+          title="League profiles"
+          description="Create a league profile before adding its teams, managers, and season rules."
+        />
+      )}
+      {canCreate && (
+        <form className="panel add-form" onSubmit={create}>
+          <h3>
+            {profiles.length
+              ? "Add another league profile"
+              : "Create the first league profile"}
+          </h3>
+          <label>
+            Profile name
+            <input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+          <label>
+            Description
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </label>
+          <label>
+            Starting team budget
+            <input
+              type="number"
+              min="0"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+            />
+          </label>
+          <button className="primary" disabled={saving || !name.trim()}>
+            {saving ? "Creating…" : "Create league"}
+          </button>
+        </form>
+      )}
+    </>
+  );
+}
+
+function ManagerAssignments({
+  profileId,
+  onChanged,
+  onNotice,
+}: {
+  profileId: string;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows: users, loading: userLoading } = useRows("profiles", {
+    limit: "500",
+  });
+  const { rows: teams, loading: teamLoading } = useRows("fpl_teams", {
+    profile_id: profileId,
+    order: "sort_order.asc",
+  });
+  const { rows: assignments, loading: assignmentLoading } = useRows(
+    "user_team_assignments",
+    { profile_id: profileId, limit: "500" },
+  );
+  const [userId, setUserId] = useState("");
+  const [teamId, setTeamId] = useState("");
+  const [busy, setBusy] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const approvedUsers = users.filter((user) => isTrue(user.approved));
+  useEffect(() => {
+    if (!userId && approvedUsers[0]?.user_id)
+      setUserId(String(approvedUsers[0].user_id));
+    if (!teamId && teams[0]?.id) setTeamId(String(teams[0].id));
+  }, [approvedUsers, teams, userId, teamId]);
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!profileId || !userId || !teamId) return;
+    setBusy(userId);
+    try {
+      const current = assignments.find((row) => String(row.user_id) === userId);
+      if (current && String(current.team_id) === teamId) {
+        onNotice("This manager is already assigned to that team.");
+        return;
+      }
+      await api.rpc("assign_manager_to_team", {
+        user_id: userId,
+        profile_id: profileId,
+        team_id: teamId,
+      });
+      onNotice("Manager assigned to the selected team.");
+      onChanged();
+    } catch (err) {
+      onNotice(`Assignment failed: ${(err as Error).message}`);
+    } finally {
+      setBusy("");
+    }
+  };
+  const remove = async (row: Row) => {
+    if (!row.id) return;
+    setBusy(String(row.id));
+    try {
+      await api.remove("user_team_assignments", String(row.id));
+      onNotice("Manager assignment removed.");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  const resetPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!userId) return;
+    setBusy("password");
+    try {
+      await api.rpc("admin_reset_password", {
+        user_id: userId,
+        password: newPassword,
+      });
+      setNewPassword("");
+      onNotice(
+        "Password reset. Share the temporary password with the manager through your usual private channel.",
+      );
+    } catch (err) {
+      onNotice(`Password reset failed: ${(err as Error).message}`);
+    } finally {
+      setBusy("");
+    }
+  };
+  const userName = (id: unknown) => {
+    const item = users.find((user) => String(user.user_id) === String(id));
+    return (
+      asText(item?.display_name) || asText(item?.email) || String(id || "—")
+    );
+  };
+  const teamName = (id: unknown) =>
+    asText(teams.find((team) => String(team.id) === String(id))?.name) ||
+    String(id || "—");
+  return (
+    <>
+      <PanelTitle
+        eyebrow="ACCOUNT ACCESS"
+        title="Manager assignments"
+        description="Approve manager signups, then connect each approved account to one fantasy team in the selected league."
+      />
+      <form className="panel add-form" onSubmit={save}>
+        <label>
+          Approved manager
+          <select
+            required
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          >
+            <option value="">Choose a manager</option>
+            {approvedUsers.map((user) => (
+              <option key={String(user.user_id)} value={String(user.user_id)}>
+                {asText(user.display_name) || asText(user.email)} ·{" "}
+                {asText(user.email)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Fantasy team
+          <select
+            required
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
+          >
+            <option value="">Choose a team</option>
+            {teams.map((team) => (
+              <option key={String(team.id)} value={String(team.id)}>
+                {asText(team.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="primary"
+          disabled={!userId || !teamId || !!busy || userLoading || teamLoading}
+        >
+          Assign manager
+        </button>
+      </form>
+      <form className="panel add-form" onSubmit={resetPassword}>
+        <label>
+          Reset an existing account password
+          <select
+            required
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          >
+            <option value="">Choose an approved manager</option>
+            {approvedUsers.map((user) => (
+              <option key={String(user.user_id)} value={String(user.user_id)}>
+                {asText(user.email)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Temporary password
+          <input
+            required
+            minLength={8}
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </label>
+        <button
+          className="secondary"
+          disabled={!userId || newPassword.length < 8 || !!busy}
+        >
+          Reset password
+        </button>
+      </form>
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Current assignments</h3>
+          <span className="mini-tag">ONE MANAGER PER LEAGUE PROFILE</span>
+        </div>
+        <DataTable
+          rows={assignments.map((row) => ({
+            ...row,
+            manager: userName(row.user_id),
+            team: teamName(row.team_id),
+          }))}
+          loading={assignmentLoading}
+          columns={[
+            { key: "manager", label: "Manager" },
+            { key: "team", label: "Fantasy team" },
+            { key: "created_at", label: "Assigned" },
+          ]}
+          actions={(row) => (
+            <button
+              className="text-button"
+              disabled={busy === row.id}
+              onClick={() => remove(row)}
+            >
+              Remove
+            </button>
+          )}
+        />
+      </div>
+    </>
+  );
+}
+
+function LeagueSettings({
+  profile,
+  onChanged,
+  onNotice,
+}: {
+  profile: Row;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const [form, setForm] = useState({
+    starting_budget: asText(profile.starting_budget || 5000),
+    weight_enabled: isTrue(profile.weight_enabled),
+    weight_trade_tolerance: asText(profile.weight_trade_tolerance || 0),
+    allow_negative_points: isTrue(profile.allow_negative_points),
+    roster_min: asText(profile.roster_min || 15),
+    roster_max: asText(profile.roster_max || 18),
+    enabled_chips: asText(profile.enabled_chips || "[]"),
+    release_cycles: asText(profile.release_cycles || "[]"),
+  });
+  const [saving, setSaving] = useState(false);
+  useEffect(
+    () =>
+      setForm({
+        starting_budget: asText(profile.starting_budget || 5000),
+        weight_enabled: isTrue(profile.weight_enabled),
+        weight_trade_tolerance: asText(profile.weight_trade_tolerance || 0),
+        allow_negative_points: isTrue(profile.allow_negative_points),
+        roster_min: asText(profile.roster_min || 15),
+        roster_max: asText(profile.roster_max || 18),
+        enabled_chips: asText(profile.enabled_chips || "[]"),
+        release_cycles: asText(profile.release_cycles || "[]"),
+      }),
+    [profile.id],
+  );
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile.id) return;
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        starting_budget: Number(form.starting_budget),
+        weight_trade_tolerance: Number(form.weight_trade_tolerance),
+        roster_min: Number(form.roster_min),
+        roster_max: Number(form.roster_max),
+        enabled_chips: JSON.parse(form.enabled_chips),
+        release_cycles: JSON.parse(form.release_cycles),
+      };
+      await api.update("game_profiles", String(profile.id), payload);
+      onNotice("League settings saved.");
+      onChanged();
+    } catch (err) {
+      onNotice(`Could not save: ${(err as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const set = (key: string, value: unknown) =>
+    setForm((f) => ({ ...f, [key]: value }));
+  return (
+    <>
+      <PanelTitle
+        eyebrow="PROFILE CONFIGURATION"
+        title={asText(profile.name)}
+        description="These values control the rules stored for this league profile."
+      />
+      <form className="panel settings-form" onSubmit={save}>
+        <div className="field-grid">
+          <label>
+            Starting budget
+            <input
+              type="number"
+              min="0"
+              value={form.starting_budget}
+              onChange={(e) => set("starting_budget", e.target.value)}
+            />
+          </label>
+          <label>
+            Minimum roster
+            <input
+              type="number"
+              min="1"
+              max="18"
+              value={form.roster_min}
+              onChange={(e) => set("roster_min", e.target.value)}
+            />
+          </label>
+          <label>
+            Maximum roster
+            <input
+              type="number"
+              min="1"
+              max="18"
+              value={form.roster_max}
+              onChange={(e) => set("roster_max", e.target.value)}
+            />
+          </label>
+          <label>
+            Weight trade tolerance
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              value={form.weight_trade_tolerance}
+              onChange={(e) => set("weight_trade_tolerance", e.target.value)}
+            />
+          </label>
+        </div>
+        <div className="toggle-grid">
+          <label className="toggle-row">
+            <span>
+              <b>Weight system</b>
+              <small>Use Area 51 tier weights and trade balance rule</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={form.weight_enabled}
+              onChange={(e) => set("weight_enabled", e.target.checked)}
+            />
+          </label>
+          <label className="toggle-row">
+            <span>
+              <b>Allow negative points</b>
+              <small>Turn off for Mandem's no-negative scoring</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={form.allow_negative_points}
+              onChange={(e) => set("allow_negative_points", e.target.checked)}
+            />
+          </label>
+        </div>
+        <div className="field-grid">
+          <label className="span-2">
+            Enabled chips <small>JSON list, e.g. ["TC","MMC"]</small>
+            <textarea
+              rows={2}
+              value={form.enabled_chips}
+              onChange={(e) => set("enabled_chips", e.target.value)}
+            />
+          </label>
+          <label className="span-2">
+            Release cycles <small>JSON list</small>
+            <textarea
+              rows={2}
+              value={form.release_cycles}
+              onChange={(e) => set("release_cycles", e.target.value)}
+            />
+          </label>
+        </div>
+        <button className="primary" disabled={saving}>
+          {saving ? "Saving…" : "Save profile settings"}
+        </button>
+      </form>
+    </>
+  );
+}
+
+function TeamManager({
+  profileId,
+  canManage,
+  onChanged,
+  onNotice,
+}: {
+  profileId: string;
+  canManage: boolean;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows, loading } = useRows("fpl_teams", {
+    profile_id: profileId,
+    order: "sort_order.asc",
+  });
+  const { rows: franchises } = useRows("ipl_teams");
+  const { rows: profileRows } = useRows("game_profiles", {
+    id: profileId,
+    limit: "1",
+  });
+  const startingBudget = Number(profileRows[0]?.starting_budget) || 5000;
+  const [adding, setAdding] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    owner: "",
+    budget: "5000",
+    ipl_team_id: "",
+  });
+  useEffect(() => {
+    if (!form.ipl_team_id && franchises[0]?.id)
+      setForm((f) => ({ ...f, ipl_team_id: String(franchises[0].id) }));
+    if (form.budget === "5000" && startingBudget !== 5000)
+      setForm((f) => ({ ...f, budget: String(startingBudget) }));
+  }, [franchises, form.ipl_team_id, form.budget, startingBudget]);
+  const add = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await api.insert("fpl_teams", {
+        id: crypto.randomUUID(),
+        profile_id: profileId,
+        name: form.name,
+        owner: form.owner,
+        budget: Number(form.budget),
+        ipl_team_id: form.ipl_team_id,
+        starting_xi: [],
+        substitutes: [],
+        chips: {},
+        sort_order: rows.length,
+        created_at: new Date().toISOString(),
+      });
+      setForm({
+        name: "",
+        owner: "",
+        budget: String(startingBudget),
+        ipl_team_id: franchises[0]?.id ? String(franchises[0].id) : "",
+      });
+      setAdding(false);
+      onNotice(
+        "Fantasy team created. Assign its manager from Managers & teams.",
+      );
+      onChanged();
+    } catch (err) {
+      onNotice(`Could not create team: ${(err as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <>
+      <PanelTitle
+        eyebrow="SQUAD MANAGEMENT"
+        title="Fantasy teams"
+        description="Review league rosters, budgets, owners, and franchise assignments."
+        actions={
+          canManage && (
+            <button className="primary" onClick={() => setAdding((v) => !v)}>
+              <Plus size={14} /> Add team
+            </button>
+          )
+        }
+      />
+      {adding && (
+        <form className="panel add-form" onSubmit={add}>
+          <label>
+            Team name
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+          </label>
+          <label>
+            Manager display name
+            <input
+              value={form.owner}
+              onChange={(e) => setForm({ ...form, owner: e.target.value })}
+            />
+          </label>
+          <label>
+            Starting budget
+            <input
+              type="number"
+              min="0"
+              value={form.budget}
+              onChange={(e) => setForm({ ...form, budget: e.target.value })}
+            />
+          </label>
+          <label>
+            IPL franchise
+            <select
+              value={form.ipl_team_id}
+              onChange={(e) =>
+                setForm({ ...form, ipl_team_id: e.target.value })
+              }
+            >
+              <option value="">None</option>
+              {franchises.map((team) => (
+                <option key={String(team.id)} value={String(team.id)}>
+                  {asText(team.name)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="primary" disabled={saving || !profileId}>
+            {saving ? "Creating…" : "Create fantasy team"}
+          </button>
+        </form>
+      )}
+      <div className="panel">
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "name", label: "Fantasy team" },
+            { key: "owner", label: "Manager" },
+            { key: "budget", label: "Budget" },
+            { key: "squad_value", label: "Squad value" },
+            { key: "ipl_team_id", label: "IPL franchise" },
+          ]}
+        />
+      </div>
+    </>
+  );
+}
+function PlayerManager({
+  canManage,
+  onChanged,
+  onNotice,
+}: {
+  canManage: boolean;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows, loading } = useRows("players", {
+    order: "name.asc",
+    limit: "500",
+  });
+  const { rows: franchises, loading: franchiseLoading } = useRows("ipl_teams", {
+    order: "name.asc",
+  });
+  const [adding, setAdding] = useState(false);
+  const [addingFranchise, setAddingFranchise] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    role: "BAT",
+    ipl_team_id: "",
+    tier: "glass",
+    weight: "0",
+    base_price: "10",
+  });
+  const [franchise, setFranchise] = useState({
+    id: "",
+    name: "",
+    short: "",
+    color: "#1D4ED8",
+  });
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.insert("players", {
+        id: `p${Date.now()}`,
+        name: form.name,
+        role: form.role,
+        ipl_team_id: form.ipl_team_id,
+        tier: form.tier,
+        weight: Number(form.weight),
+        base_price: Number(form.base_price),
+      });
+      setAdding(false);
+      setForm({ ...form, name: "" });
+      onNotice("Player added to the catalog.");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const addFranchise = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.insert("ipl_teams", {
+        id: franchise.id.trim().toLowerCase(),
+        name: franchise.name,
+        short: franchise.short.toUpperCase(),
+        color: franchise.color,
+        wins: 0,
+        losses: 0,
+        match_results: [],
+      });
+      setFranchise({ id: "", name: "", short: "", color: "#1D4ED8" });
+      setAddingFranchise(false);
+      onNotice("IPL franchise added.");
+      onChanged();
+    } catch (err) {
+      onNotice(`Could not add franchise: ${(err as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <>
+      <PanelTitle
+        eyebrow="AUCTION POOL"
+        title="Player pool"
+        description="Maintain the IPL franchise catalog and the player catalog used by auctions and scoring."
+        actions={
+          canManage && (
+            <>
+              <button
+                className="secondary"
+                onClick={() => setAddingFranchise((v) => !v)}
+              >
+                <Plus size={14} /> Add franchise
+              </button>
+              <button className="primary" onClick={() => setAdding((v) => !v)}>
+                <Plus size={14} /> Add player
+              </button>
+            </>
+          )
+        }
+      />
+      {addingFranchise && (
+        <form className="panel add-form" onSubmit={addFranchise}>
+          <h3>New IPL franchise</h3>
+          <label>
+            Short ID
+            <input
+              required
+              placeholder="csk"
+              value={franchise.id}
+              onChange={(e) =>
+                setFranchise({ ...franchise, id: e.target.value })
+              }
+            />
+          </label>
+          <label>
+            Team name
+            <input
+              required
+              value={franchise.name}
+              onChange={(e) =>
+                setFranchise({ ...franchise, name: e.target.value })
+              }
+            />
+          </label>
+          <label>
+            Short name
+            <input
+              required
+              maxLength={20}
+              value={franchise.short}
+              onChange={(e) =>
+                setFranchise({ ...franchise, short: e.target.value })
+              }
+            />
+          </label>
+          <label>
+            Color
+            <input
+              type="color"
+              value={franchise.color}
+              onChange={(e) =>
+                setFranchise({ ...franchise, color: e.target.value })
+              }
+            />
+          </label>
+          <button className="primary" disabled={saving}>
+            {saving ? "Adding…" : "Save franchise"}
+          </button>
+        </form>
+      )}
+      {adding && (
+        <form className="panel add-form" onSubmit={add}>
+          <label>
+            Player name
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+          </label>
+          <label>
+            Role
+            <select
+              value={form.role}
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
+            >
+              <option>BAT</option>
+              <option>WK</option>
+              <option>BOWL</option>
+              <option>AR</option>
+              <option>TEAM</option>
+            </select>
+          </label>
+          <label>
+            IPL franchise
+            <select
+              required
+              value={form.ipl_team_id}
+              onChange={(e) =>
+                setForm({ ...form, ipl_team_id: e.target.value })
+              }
+            >
+              <option value="">Choose franchise</option>
+              {franchises.map((team) => (
+                <option key={String(team.id)} value={String(team.id)}>
+                  {asText(team.name)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tier
+            <select
+              value={form.tier}
+              onChange={(e) => setForm({ ...form, tier: e.target.value })}
+            >
+              <option>glass</option>
+              <option>bronze</option>
+              <option>silver</option>
+              <option>gold</option>
+              <option>platinum</option>
+            </select>
+          </label>
+          <label>
+            Weight
+            <input
+              type="number"
+              min="0"
+              max="5"
+              value={form.weight}
+              onChange={(e) => setForm({ ...form, weight: e.target.value })}
+            />
+          </label>
+          <label>
+            Base price
+            <input
+              type="number"
+              min="0"
+              value={form.base_price}
+              onChange={(e) => setForm({ ...form, base_price: e.target.value })}
+            />
+          </label>
+          <button
+            className="primary"
+            disabled={saving || franchiseLoading || franchises.length === 0}
+          >
+            {saving ? "Adding…" : "Save player"}
+          </button>
+        </form>
+      )}
+      <div className="panel">
+        <div className="panel-head">
+          <h3>IPL franchises</h3>
+        </div>
+        <DataTable
+          rows={franchises}
+          loading={franchiseLoading}
+          columns={[
+            { key: "id", label: "ID" },
+            { key: "name", label: "Franchise" },
+            { key: "short", label: "Short name" },
+            { key: "color", label: "Color" },
+          ]}
+        />
+      </div>
+      <div className="panel">
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "name", label: "Player" },
+            { key: "role", label: "Role" },
+            { key: "ipl_team_id", label: "Franchise" },
+            { key: "tier", label: "Tier" },
+            { key: "weight", label: "Weight" },
+            { key: "base_price", label: "Base price" },
+          ]}
+        />
+      </div>
+    </>
+  );
+}
+
+function AuctionDesk({
+  profileId,
+  onChanged,
+  onNotice,
+}: {
+  profileId: string;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows: teams } = useRows("fpl_teams", {
+    profile_id: profileId,
+    order: "sort_order.asc",
+  });
+  const { rows: players } = useRows("players", {
+    order: "name.asc",
+    limit: "1000",
+  });
+  const { rows: assignments } = useRows("player_assignments", {
+    profile_id: profileId,
+  });
+  const [teamId, setTeamId] = useState("");
+  const [playerId, setPlayerId] = useState("");
+  const [price, setPrice] = useState("");
+  const [filter, setFilter] = useState("");
+  const [busy, setBusy] = useState(false);
+  const unassigned = useMemo(
+    () =>
+      players.filter(
+        (p) =>
+          !assignments.some((a) => String(a.player_id) === String(p.id)) &&
+          asText(p.name).toLowerCase().includes(filter.toLowerCase()),
+      ),
+    [players, assignments, filter],
+  );
+  useEffect(() => {
+    if (!teamId && teams[0]?.id) setTeamId(String(teams[0].id));
+    if (!unassigned.some((p) => String(p.id) === playerId) && unassigned[0]?.id)
+      setPlayerId(String(unassigned[0].id));
+  }, [teams, unassigned, teamId, playerId]);
+  const selectedPlayer = players.find((p) => String(p.id) === playerId);
+  const selectedTeam = teams.find((t) => String(t.id) === teamId);
+  useEffect(() => {
+    if (selectedPlayer) setPrice(asText(selectedPlayer.base_price || 0));
+  }, [playerId]);
+  const sell = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!teamId || !playerId) return;
+    setBusy(true);
+    try {
+      await api.rpc("execute_auction_sale", {
+        profile_id: profileId,
+        team_id: teamId,
+        player_id: playerId,
+        price: Number(price),
+      });
+      onNotice(
+        `${asText(selectedPlayer?.name)} sold to ${asText(selectedTeam?.name)} for ${price}.`,
+      );
+      setPlayerId("");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <PanelTitle
+        eyebrow="LIVE AUCTION"
+        title="Auction desk"
+        description="Record a sale through the atomic Laravel endpoint. Budget, ownership, base price, and roster caps are validated on the server."
+      />
+      <div className="auction-grid">
+        <form className="panel auction-form" onSubmit={sell}>
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">SALE RECORDER</p>
+              <h3>Assign an unsold asset</h3>
+            </div>
+            <Gavel size={18} />
+          </div>
+          <label>
+            Fantasy team
+            <select
+              required
+              value={teamId}
+              onChange={(e) => setTeamId(e.target.value)}
+            >
+              {teams.map((t) => (
+                <option value={String(t.id)} key={String(t.id)}>
+                  {asText(t.name)} · budget {asText(t.budget)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Search player pool
+            <input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter by player or franchise"
+            />
+          </label>
+          <label>
+            Player
+            <select
+              required
+              value={playerId}
+              onChange={(e) => setPlayerId(e.target.value)}
+            >
+              {unassigned.map((p) => (
+                <option value={String(p.id)} key={String(p.id)}>
+                  {asText(p.name)} · {asText(p.role)} · base{" "}
+                  {asText(p.base_price)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Sale price
+            <input
+              required
+              min={Number(selectedPlayer?.base_price) || 0}
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </label>
+          <button
+            className="primary"
+            disabled={busy || !selectedPlayer || !selectedTeam}
+          >
+            {busy ? "Recording…" : "Confirm sale"}
+          </button>
+        </form>
+        <section className="panel auction-summary">
+          <p className="eyebrow">PURCHASE CHECK</p>
+          <h3>{asText(selectedPlayer?.name) || "Select a player"}</h3>
+          <div className="summary-line">
+            <span>Buyer</span>
+            <b>{asText(selectedTeam?.name) || "—"}</b>
+          </div>
+          <div className="summary-line">
+            <span>Current budget</span>
+            <b>{asText(selectedTeam?.budget) || "—"}</b>
+          </div>
+          <div className="summary-line">
+            <span>Base price</span>
+            <b>{asText(selectedPlayer?.base_price) || "—"}</b>
+          </div>
+          <div className="summary-line total">
+            <span>Budget after sale</span>
+            <b>
+              {selectedTeam
+                ? Number(selectedTeam.budget || 0) - Number(price || 0)
+                : "—"}
+            </b>
+          </div>
+          <p className="hint">
+            <Shield size={15} /> IPL franchises count as auction assets and do
+            not use one of the 15–18 player slots.
+          </p>
+        </section>
+      </div>
+      <section className="panel">
+        <div className="panel-head">
+          <div>
+            <p className="eyebrow">AVAILABLE ASSETS</p>
+            <h3>
+              Unsold pool{" "}
+              <span className="count-pill">{unassigned.length}</span>
+            </h3>
+          </div>
+        </div>
+        <DataTable
+          rows={unassigned.slice(0, 50)}
+          loading={false}
+          columns={[
+            { key: "name", label: "Player / asset" },
+            { key: "role", label: "Role" },
+            { key: "ipl_team_id", label: "Franchise" },
+            { key: "tier", label: "Tier" },
+            { key: "base_price", label: "Base price" },
+          ]}
+        />
+      </section>
+    </>
+  );
+}
+
+function GameweekManager({
+  profileId,
+  canManage,
+  onChanged,
+  onNotice,
+}: {
+  profileId: string;
+  canManage: boolean;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows, loading } = useRows("gameweeks", { order: "number.asc" });
+  const [busy, setBusy] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const nextNumber = Math.max(0, ...rows.map((r) => Number(r.number) || 0)) + 1;
+  const [form, setForm] = useState({
+    name: `Gameweek ${nextNumber}`,
+    deadline: "",
+    game_count: "1",
+  });
+  const update = async (row: Row, patch: Row) => {
+    if (!row.id) return;
+    setBusy(String(row.id));
+    try {
+      await api.update("gameweeks", String(row.id), patch);
+      onNotice("Gameweek updated.");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  const recalc = async (row: Row) => {
+    if (!row.id) return;
+    setBusy(`score-${row.id}`);
+    try {
+      await api.recalculate(profileId, String(row.id));
+      onNotice(`Scores recalculated for ${asText(row.name)}.`);
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  const setActive = async (row: Row) => {
+    if (!row.id) return;
+    setBusy(String(row.id));
+    try {
+      await api.rpc("set_active_gameweek", { gameweek_id: row.id });
+      onNotice(`${asText(row.name)} is active.`);
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const id = `gw${nextNumber}`;
+      const deadline = form.deadline.replace("T", " ") + ":00";
+      await api.insert("gameweeks", {
+        id,
+        name: form.name,
+        number: nextNumber,
+        deadline,
+        lock_time: deadline,
+        game_count: Number(form.game_count),
+        is_active: false,
+        is_locked: false,
+        is_complete: false,
+      });
+      setAdding(false);
+      setForm({
+        name: `Gameweek ${nextNumber + 1}`,
+        deadline: "",
+        game_count: "1",
+      });
+      onNotice("Gameweek created.");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <>
+      <PanelTitle
+        eyebrow="SCHEDULE & DEADLINES"
+        title="Gameweeks"
+        description="Set the active week and deadline. Deadline locks snapshot every team's submitted lineup."
+        actions={
+          canManage && (
+            <button className="primary" onClick={() => setAdding((v) => !v)}>
+              <Plus size={14} /> Add gameweek
+            </button>
+          )
+        }
+      />
+      {adding && (
+        <form className="panel add-form" onSubmit={add}>
+          <label>
+            Week name
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+          </label>
+          <label>
+            Deadline
+            <input
+              required
+              type="datetime-local"
+              value={form.deadline}
+              onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+            />
+          </label>
+          <label>
+            Match count
+            <input
+              min="1"
+              type="number"
+              value={form.game_count}
+              onChange={(e) => setForm({ ...form, game_count: e.target.value })}
+            />
+          </label>
+          <button className="primary" disabled={saving}>
+            {saving ? "Creating…" : "Create week"}
+          </button>
+        </form>
+      )}
+      <div className="panel">
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "number", label: "Week" },
+            { key: "name", label: "Name" },
+            { key: "deadline", label: "Deadline" },
+            { key: "is_active", label: "Active" },
+            { key: "is_locked", label: "Locked" },
+          ]}
+          actions={(row) => (
+            <div className="row-actions">
+              {canManage && (
+                <button
+                  className="text-button"
+                  disabled={busy === row.id || isTrue(row.is_locked)}
+                  onClick={() => setActive(row)}
+                >
+                  Set active
+                </button>
+              )}
+              <button
+                className="text-button"
+                disabled={busy === `score-${row.id}`}
+                onClick={() => recalc(row)}
+              >
+                {busy === `score-${row.id}` ? "Working…" : "Recalculate"}
+              </button>
+              {canManage && (
+                <button
+                  className="text-button"
+                  disabled={busy === row.id || !isTrue(row.is_locked)}
+                  onClick={() =>
+                    update(row, {
+                      is_locked: false,
+                      admin_override_unlocked: true,
+                    })
+                  }
+                >
+                  Unlock
+                </button>
+              )}
+            </div>
+          )}
+        />
+      </div>
+      <p className="hint">
+        <Shield size={15} /> Each deadline lock snapshots the current submitted
+        lineup and preserves a backup.
+      </p>
+    </>
+  );
+}
+function ScoreManager({
+  profileId,
+  onNotice,
+  onChanged,
+}: {
+  profileId: string;
+  onNotice: (s: string) => void;
+  onChanged: () => void;
+}) {
+  const { rows, loading } = useRows("team_gw_scores", {
+    profile_id: profileId,
+    order: "points.desc",
+    limit: "200",
+  });
+  const { rows: stats, loading: statsLoading } = useRows("player_match_stats", {
+    profile_id: profileId,
+    order: "gameweek_id.desc",
+    limit: "500",
+  });
+  const { rows: players } = useRows("players", {
+    order: "name.asc",
+    limit: "1000",
+  });
+  const { rows: weeks } = useRows("gameweeks", { order: "number.asc" });
+  const [gameweekId, setGameweekId] = useState("");
+  const [playerId, setPlayerId] = useState("");
+  const [matchNumber, setMatchNumber] = useState("1");
+  const [values, setValues] = useState({
+    runs: "0",
+    balls: "0",
+    wickets: "0",
+    overs_bowled: "0",
+    runs_conceded: "0",
+    maidens: "0",
+    catches: "0",
+    stumpings: "0",
+    run_outs: "0",
+    direct_run_outs: "0",
+    split_run_outs: "0",
+    fours: "0",
+    sixes: "0",
+    hat_tricks: "0",
+  });
+  const [flags, setFlags] = useState({
+    is_out: true,
+    is_dnp: false,
+    team_win: false,
+    motm: false,
+    six_sixes: false,
+    super_over: false,
+  });
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (!gameweekId && weeks[0]?.id) setGameweekId(String(weeks[0].id));
+    if (!playerId && players[0]?.id) setPlayerId(String(players[0].id));
+  }, [gameweekId, playerId, weeks, players]);
+  const addStats = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!profileId || !gameweekId || !playerId) return;
+    setSaving(true);
+    try {
+      await api.insert("player_match_stats", {
+        id: crypto.randomUUID(),
+        profile_id: profileId,
+        gameweek_id: gameweekId,
+        player_id: playerId,
+        match_number: Number(matchNumber) || 1,
+        ...Object.fromEntries(
+          Object.entries(values).map(([k, v]) => [k, Number(v) || 0]),
+        ),
+        ...flags,
+        participation_type: flags.is_dnp ? "not_played" : "played",
+        created_at: new Date().toISOString(),
+      });
+      onNotice(
+        "Player match stats saved. Recalculate the gameweek after entering all match results.",
+      );
+      onChanged();
+    } catch (err) {
+      onNotice(`Could not save match stats: ${(err as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const playerName = (id: unknown) =>
+    asText(players.find((p) => String(p.id) === String(id))?.name) ||
+    String(id || "—");
+  return (
+    <>
+      <PanelTitle
+        eyebrow="OFFICIAL RESULTS"
+        title="Scores & match data"
+        description="Enter scorecard facts for the selected league. Laravel calculates fantasy points and ranks from these facts."
+      />
+      <form className="panel add-form" onSubmit={addStats}>
+        <h3>Enter one player's match line</h3>
+        <label>
+          Gameweek
+          <select
+            required
+            value={gameweekId}
+            onChange={(e) => setGameweekId(e.target.value)}
+          >
+            {weeks.map((w) => (
+              <option key={String(w.id)} value={String(w.id)}>
+                {asText(w.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Player
+          <select
+            required
+            value={playerId}
+            onChange={(e) => setPlayerId(e.target.value)}
+          >
+            {players.map((p) => (
+              <option key={String(p.id)} value={String(p.id)}>
+                {asText(p.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Match number
+          <input
+            type="number"
+            min="1"
+            value={matchNumber}
+            onChange={(e) => setMatchNumber(e.target.value)}
+          />
+        </label>
+        <div className="field-grid">
+          {Object.entries(values).map(([key, value]) => (
+            <label key={key}>
+              {key.replaceAll("_", " ")}
+              <input
+                type="number"
+                min="0"
+                step={key === "overs_bowled" ? "0.1" : "1"}
+                value={value}
+                onChange={(e) =>
+                  setValues((v) => ({ ...v, [key]: e.target.value }))
+                }
+              />
+            </label>
+          ))}
+        </div>
+        <div className="toggle-grid">
+          {Object.entries(flags).map(([key, value]) => (
+            <label className="toggle-row" key={key}>
+              <span>{key.replaceAll("_", " ")}</span>
+              <input
+                type="checkbox"
+                checked={value}
+                onChange={(e) =>
+                  setFlags((current) => ({
+                    ...current,
+                    [key]: e.target.checked,
+                  }))
+                }
+              />
+            </label>
+          ))}
+        </div>
+        <button
+          className="primary"
+          disabled={saving || !profileId || !gameweekId || !playerId}
+        >
+          {saving ? "Saving…" : "Save match facts"}
+        </button>
+      </form>
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Entered player match data</h3>
+        </div>
+        <DataTable
+          rows={stats.map((row) => ({
+            ...row,
+            player_name: playerName(row.player_id),
+          }))}
+          loading={statsLoading}
+          columns={[
+            { key: "gameweek_id", label: "Gameweek" },
+            { key: "match_number", label: "Match" },
+            { key: "player_name", label: "Player" },
+            { key: "runs", label: "Runs" },
+            { key: "balls", label: "Balls" },
+            { key: "wickets", label: "Wickets" },
+            { key: "overs_bowled", label: "Overs" },
+            { key: "runs_conceded", label: "Conceded" },
+            { key: "catches", label: "Catches" },
+          ]}
+        />
+      </div>
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Calculated team totals</h3>
+        </div>
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "gameweek_id", label: "Gameweek" },
+            { key: "team_id", label: "Team ID" },
+            { key: "points", label: "Week points" },
+            { key: "total_points", label: "Season points" },
+            { key: "rank", label: "Rank" },
+            { key: "chip_applied", label: "Chip" },
+          ]}
+        />
+      </div>
+      <AdminBonusManager
+        profileId={profileId}
+        onChanged={onChanged}
+        onNotice={onNotice}
+      />
+    </>
+  );
+}
+
+function AdminBonusManager({
+  profileId,
+  onChanged,
+  onNotice,
+}: {
+  profileId: string;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows, loading } = useRows("admin_bonuses", {
+    profile_id: profileId,
+    order: "created_at.desc",
+    limit: "200",
+  });
+  const { rows: teams } = useRows("fpl_teams", { profile_id: profileId });
+  const { rows: weeks } = useRows("gameweeks", { order: "number.asc" });
+  const [teamId, setTeamId] = useState("");
+  const [weekId, setWeekId] = useState("");
+  const [points, setPoints] = useState("150");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (!teamId && teams[0]?.id) setTeamId(String(teams[0].id));
+    if (!weekId && weeks[0]?.id) setWeekId(String(weeks[0].id));
+  }, [teamId, weekId, teams, weeks]);
+  const add = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await api.insert("admin_bonuses", {
+        id: crypto.randomUUID(),
+        profile_id: profileId,
+        team_id: teamId,
+        gameweek_id: weekId,
+        points: Number(points),
+        note,
+        created_at: new Date().toISOString(),
+      });
+      setNote("");
+      onNotice(
+        "Point adjustment recorded. Recalculate the gameweek to include it.",
+      );
+      onChanged();
+    } catch (err) {
+      onNotice(`Could not record adjustment: ${(err as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <>
+      <form className="panel add-form" onSubmit={add}>
+        <h3>Record an admin point adjustment</h3>
+        <p className="muted">
+          Use for documented league adjustments and Straddle outcomes (usually
+          +150 or −150).
+        </p>
+        <label>
+          Fantasy team
+          <select
+            required
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
+          >
+            {teams.map((team) => (
+              <option key={String(team.id)} value={String(team.id)}>
+                {asText(team.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Gameweek
+          <select
+            required
+            value={weekId}
+            onChange={(e) => setWeekId(e.target.value)}
+          >
+            {weeks.map((week) => (
+              <option key={String(week.id)} value={String(week.id)}>
+                {asText(week.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Points (positive or negative)
+          <input
+            required
+            type="number"
+            value={points}
+            onChange={(e) => setPoints(e.target.value)}
+          />
+        </label>
+        <label>
+          Reason
+          <input
+            required
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </label>
+        <button className="primary" disabled={saving || !teamId || !weekId}>
+          {saving ? "Saving…" : "Record adjustment"}
+        </button>
+      </form>
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Recorded adjustments</h3>
+        </div>
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "gameweek_id", label: "Gameweek" },
+            { key: "team_id", label: "Team ID" },
+            { key: "points", label: "Points" },
+            { key: "note", label: "Reason" },
+          ]}
+        />
+      </div>
+    </>
+  );
+}
+function TradeManager({
+  profileId,
+  onChanged,
+  onNotice,
+}: {
+  profileId: string;
+  onChanged: () => void;
+  onNotice: (s: string) => void;
+}) {
+  const { rows, loading, setRows } = useRows("trades", {
+    profile_id: profileId,
+    order: "created_at.desc",
+    limit: "200",
+  });
+  const [busy, setBusy] = useState("");
+  const execute = async (row: Row) => {
+    if (!row.id) return;
+    setBusy(String(row.id));
+    try {
+      await api.rpc("execute_trade", { trade_id: row.id });
+      setRows((rs) =>
+        rs.map((x) => (x.id === row.id ? { ...x, status: "accepted" } : x)),
+      );
+      onNotice("Trade accepted and processed.");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  const cancel = async (row: Row) => {
+    if (!row.id) return;
+    setBusy(String(row.id));
+    try {
+      await api.rpc("admin_cancel_trade", { trade_id: row.id });
+      setRows((rs) =>
+        rs.map((x) => (x.id === row.id ? { ...x, status: "cancelled" } : x)),
+      );
+      onNotice("Pending trade cancelled.");
+      onChanged();
+    } catch (err) {
+      onNotice((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  return (
+    <>
+      <PanelTitle
+        eyebrow="TRANSFERS & LOANS"
+        title="Trade review"
+        description="Accept valid pending exchanges or cancel an offer. Laravel applies ownership, budget, roster, and weight checks."
+      />
+      <div className="panel">
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "created_at", label: "Created" },
+            { key: "type", label: "Type" },
+            { key: "from_team_id", label: "From team" },
+            { key: "to_team_id", label: "To team" },
+            { key: "status", label: "Status" },
+            { key: "cash_from", label: "Cash from" },
+            { key: "cash_to", label: "Cash to" },
+          ]}
+          actions={(row) =>
+            asText(row.status) === "pending" ? (
+              <div className="row-actions">
+                <button
+                  className="primary small"
+                  disabled={busy === row.id}
+                  onClick={() => execute(row)}
+                >
+                  {busy === row.id ? "Working…" : "Accept"}
+                </button>
+                <button
+                  className="text-button"
+                  disabled={busy === row.id}
+                  onClick={() => cancel(row)}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <span className="muted">—</span>
+            )
+          }
+        />
+      </div>
+    </>
+  );
+}
+function ActivityView({ profileId }: { profileId: string }) {
+  const { rows, loading } = useRows("league_activity_log", {
+    profile_id: profileId,
+    order: "created_at.desc",
+    limit: "200",
+  });
+  return (
+    <>
+      <PanelTitle
+        eyebrow="AUDIT TRAIL"
+        title="League activity"
+        description="Recent changes recorded by the league API."
+      />
+      <div className="panel">
+        <DataTable
+          rows={rows}
+          loading={loading}
+          columns={[
+            { key: "created_at", label: "Time" },
+            { key: "activity_type", label: "Type" },
+            { key: "description", label: "Activity" },
+            { key: "user_id", label: "Actor" },
+          ]}
+        />
+      </div>
+    </>
+  );
+}
