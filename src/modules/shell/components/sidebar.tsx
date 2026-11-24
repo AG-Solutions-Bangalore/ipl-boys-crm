@@ -37,16 +37,14 @@ export function Sidebar() {
                   <Icon size={14} strokeWidth={2} aria-hidden="true" />
                 </span>
                 <span>{item.label}</span>
-                {item.path === "/approvals" && <span className="nav-dot" aria-label="Pending approvals" />}
+                {item.path === "/approvals" && (
+                  <span className="nav-dot" aria-label="Pending approvals" />
+                )}
               </NavLink>
             );
           })}
       </nav>
       <div className="sidebar-bottom">
-        <div className="secure-note">
-          <span className="online-dot" aria-hidden="true" />
-          API connected
-        </div>
         <button className="nav-item" onClick={() => void signOut()}>
           <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-red-500/15 text-red-400">
             <LogOut size={14} strokeWidth={2} aria-hidden="true" />

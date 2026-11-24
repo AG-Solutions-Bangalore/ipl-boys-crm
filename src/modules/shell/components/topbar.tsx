@@ -1,5 +1,6 @@
 import { ChevronDown, RefreshCw } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { asText } from "@/lib/format";
 import { useSession } from "@/modules/auth/hooks/use-session";
 import { navigation } from "@/modules/shell/config/navigation";
@@ -41,6 +42,7 @@ export function Topbar() {
         <button className="icon-button" title="Refresh data" aria-label="Refresh data" onClick={refresh}>
           <RefreshCw size={15} strokeWidth={1.5} aria-hidden="true" />
         </button>
+        <ThemeToggle />
         <div className="user-chip">
           <span className="avatar" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>
           <span>

@@ -34,18 +34,21 @@ export function OverviewPage() {
         <MetricCard
           label="Fantasy teams"
           value={teams.rows.length}
+          loading={teams.loading}
           icon={Users}
           caption="In this league"
         />
         <MetricCard
           label="Pending approvals"
           value={pending.rows.length}
+          loading={pending.loading}
           icon={BadgeCheck}
           caption="Waiting for review"
         />
         <MetricCard
           label="Active gameweek"
           value={asText(active?.name) || "—"}
+          loading={weeks.loading}
           icon={Clock3}
           caption={
             active
@@ -56,6 +59,7 @@ export function OverviewPage() {
         <MetricCard
           label="Pending trades"
           value={trades.rows.length}
+          loading={trades.loading}
           icon={Swords}
           caption="Need a decision"
         />
