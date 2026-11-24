@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
@@ -21,7 +22,8 @@ import {
   X,
   Plus,
 } from "lucide-react";
-import { api, clearToken, readToken, type Row, type User } from "./api";
+import { Button } from "./components/ui/button";
+import { api, clearToken, readToken, type Row, type User } from "./lib/api";
 
 type View =
   | "overview"
@@ -35,20 +37,19 @@ type View =
   | "scores"
   | "trades"
   | "activity";
-const navigation: { id: View; label: string; icon: typeof LayoutDashboard }[] =
-  [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "approvals", label: "Approvals", icon: BadgeCheck },
-    { id: "managers", label: "Managers & teams", icon: Users },
-    { id: "leagues", label: "League settings", icon: Shield },
-    { id: "teams", label: "Fantasy teams", icon: Users },
-    { id: "players", label: "Player pool", icon: Activity },
-    { id: "auction", label: "Auction desk", icon: Gavel },
-    { id: "gameweeks", label: "Gameweeks", icon: Clock3 },
-    { id: "scores", label: "Scores", icon: CircleDollarSign },
-    { id: "trades", label: "Trades", icon: Swords },
-    { id: "activity", label: "Activity log", icon: Database },
-  ];
+const navigation: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "approvals", label: "Approvals", icon: BadgeCheck },
+  { id: "managers", label: "Managers & teams", icon: Users },
+  { id: "leagues", label: "League settings", icon: Shield },
+  { id: "teams", label: "Fantasy teams", icon: Users },
+  { id: "players", label: "Player pool", icon: Activity },
+  { id: "auction", label: "Auction desk", icon: Gavel },
+  { id: "gameweeks", label: "Gameweeks", icon: Clock3 },
+  { id: "scores", label: "Scores", icon: CircleDollarSign },
+  { id: "trades", label: "Trades", icon: Swords },
+  { id: "activity", label: "Activity log", icon: Database },
+];
 const emptyUser = (): User | null => {
   const raw = localStorage.getItem("fantasy_world_admin_user");
   try {
@@ -59,10 +60,10 @@ const emptyUser = (): User | null => {
 };
 const asText = (v: unknown) =>
   v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
-const isTrue = (v: unknown) =>
-  v === true || v === 1 || v === "1" || v === "true";
+const isTrue = (v: unknown) => v === true || v === 1 || v === "1" || v === "true";
 
 export default function App() {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(emptyUser);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -70,12 +71,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [view, setView] = useState<View>("overview");
   const [profileId, setProfileId] = useState("");
-  const [profiles, setProfiles] = useState<Row[]>([]);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [notice, setNotice] = useState("");
-  const isAdmin = !!user?.roles?.some(
-    (role) => role === "app_admin" || role === "profile_admin",
-  );
+  const isAdmin = !!user?.roles?.some((role) => role === "app_admin" || role === "profile_admin");
   const isAppAdmin = !!user?.roles?.includes("app_admin");
 
   useEffect(() => {
@@ -87,30 +84,34 @@ export default function App() {
       .currentUser()
       .then(({ user: current }) => {
         setUser(current);
-        localStorage.setItem(
-          "fantasy_world_admin_user",
-          JSON.stringify(current),
-        );
+        localStorage.setItem("fantasy_world_admin_user", JSON.stringify(current));
       })
       .catch(() => {
         clearToken();
         localStorage.removeItem("fantasy_world_admin_user");
+        queryClient.clear();
         setUser(null);
       });
-  }, []);
+  }, [queryClient]);
+
+  const profilesQuery = useQuery({
+    queryKey: ["profiles"],
+    queryFn: api.profiles,
+    enabled: !!user && isAdmin,
+  });
+  const profiles = useMemo(() => profilesQuery.data ?? [], [profilesQuery.data]);
 
   useEffect(() => {
-    if (!user || !isAdmin) return;
-    api
-      .profiles()
-      .then((items) => {
-        setProfiles(items);
-        if (!profileId && items[0]?.id) setProfileId(String(items[0].id));
-      })
-      .catch((err) => setError(err.message));
-  }, [user, isAdmin, refreshKey]);
+    if (!profileId && profiles[0]?.id) setProfileId(String(profiles[0].id));
+  }, [profileId, profiles]);
 
-  const refresh = useCallback(() => setRefreshKey((n) => n + 1), []);
+  useEffect(() => {
+    if (profilesQuery.error) setError(profilesQuery.error.message);
+  }, [profilesQuery.error]);
+
+  const refresh = useCallback(() => {
+    queryClient.invalidateQueries();
+  }, [queryClient]);
   const signIn = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
@@ -118,23 +119,14 @@ export default function App() {
     try {
       const result = await api.login(email.trim(), password);
       const loggedIn = result.user;
-      localStorage.setItem(
-        "fantasy_world_admin_token",
-        result.session.access_token,
-      );
-      localStorage.setItem(
-        "fantasy_world_admin_user",
-        JSON.stringify(loggedIn),
-      );
-      if (
-        !loggedIn.roles?.some(
-          (role) => role === "app_admin" || role === "profile_admin",
-        )
-      ) {
+      localStorage.setItem("fantasy_world_admin_token", result.session.access_token);
+      localStorage.setItem("fantasy_world_admin_user", JSON.stringify(loggedIn));
+      if (!loggedIn.roles?.some((role) => role === "app_admin" || role === "profile_admin")) {
         clearToken();
         localStorage.removeItem("fantasy_world_admin_user");
         throw new Error("This account does not have an administrator role.");
       }
+      queryClient.clear();
       setUser(loggedIn);
     } catch (err) {
       setError((err as Error).message);
@@ -150,6 +142,7 @@ export default function App() {
     }
     clearToken();
     localStorage.removeItem("fantasy_world_admin_user");
+    queryClient.clear();
     setUser(null);
   };
 
@@ -162,9 +155,7 @@ export default function App() {
           </div>
           <p className="eyebrow">FANTASY WORLD / ADMIN</p>
           <h1>Control room</h1>
-          <p className="muted">
-            Sign in with an approved administrator account.
-          </p>
+          <p className="muted">Sign in with an approved administrator account.</p>
           {error && <p className="error-banner">{error}</p>}
           <label>
             Email address
@@ -186,9 +177,14 @@ export default function App() {
               autoComplete="current-password"
             />
           </label>
-          <button className="primary full" disabled={busy}>
+          <Button
+            type="submit"
+            size="lg"
+            className="full h-auto py-2.5 text-[11px] font-bold"
+            disabled={busy}
+          >
             {busy ? "Signing in…" : "Sign in"}
-          </button>
+          </Button>
         </form>
         <span className="login-foot">
           ADMIN ACCESS IS AUDITED · MYSQL IS ONLY ACCESSED THROUGH LARAVEL
@@ -205,8 +201,7 @@ export default function App() {
           </div>
           <h1>Admin role required</h1>
           <p>
-            Your signed-in account has no <code>app_admin</code> or{" "}
-            <code>profile_admin</code> role.
+            Your signed-in account has no <code>app_admin</code> or <code>profile_admin</code> role.
           </p>
           <button className="primary" onClick={signOut}>
             Sign out
@@ -215,9 +210,7 @@ export default function App() {
       </main>
     );
 
-  const selectedProfile = profiles.find(
-    (profile) => String(profile.id) === profileId,
-  );
+  const selectedProfile = profiles.find((profile) => String(profile.id) === profileId);
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -233,11 +226,7 @@ export default function App() {
         <div className="side-label">MANAGEMENT</div>
         <nav>
           {navigation
-            .filter(
-              (item) =>
-                (item.id !== "approvals" && item.id !== "managers") ||
-                isAppAdmin,
-            )
+            .filter((item) => (item.id !== "approvals" && item.id !== "managers") || isAppAdmin)
             .map((item) => {
               const Icon = item.icon;
               return (
@@ -278,10 +267,7 @@ export default function App() {
             {profiles.length > 0 && (
               <label className="profile-select">
                 <span>LEAGUE</span>
-                <select
-                  value={profileId}
-                  onChange={(e) => setProfileId(e.target.value)}
-                >
+                <select value={profileId} onChange={(e) => setProfileId(e.target.value)}>
                   {profiles.map((p) => (
                     <option key={String(p.id)} value={String(p.id)}>
                       {asText(p.name)}
@@ -291,27 +277,17 @@ export default function App() {
                 <ChevronDown size={14} />
               </label>
             )}
-            <button
-              className="icon-button"
-              title="Refresh data"
-              onClick={refresh}
-            >
+            <button className="icon-button" title="Refresh data" onClick={refresh}>
               <RefreshCw size={16} />
             </button>
 
             <div className="user-chip">
               <span className="avatar">
-                {(user.user_metadata?.display_name || user.email)
-                  .slice(0, 1)
-                  .toUpperCase()}
+                {(user.user_metadata?.display_name || user.email).slice(0, 1).toUpperCase()}
               </span>
               <span>
                 {user.user_metadata?.display_name || user.email}
-                <small>
-                  {user.roles.includes("app_admin")
-                    ? "App admin"
-                    : "Profile admin"}
-                </small>
+                <small>{user.roles.includes("app_admin") ? "App admin" : "Profile admin"}</small>
               </span>
             </div>
           </div>
@@ -335,23 +311,13 @@ export default function App() {
           </div>
         )}
 
-        <section className="content" key={`${view}-${profileId}-${refreshKey}`}>
+        <section className="content" key={`${view}-${profileId}`}>
           {view === "overview" && (
-            <Overview
-              profileId={profileId}
-              profiles={profiles}
-              onNavigate={setView}
-            />
+            <Overview profileId={profileId} profiles={profiles} onNavigate={setView} />
           )}
-          {view === "approvals" && (
-            <Approvals onChanged={refresh} onNotice={setNotice} />
-          )}
+          {view === "approvals" && <Approvals onChanged={refresh} onNotice={setNotice} />}
           {view === "managers" && isAppAdmin && (
-            <ManagerAssignments
-              profileId={profileId}
-              onChanged={refresh}
-              onNotice={setNotice}
-            />
+            <ManagerAssignments profileId={profileId} onChanged={refresh} onNotice={setNotice} />
           )}
           {view === "leagues" && (
             <LeaguePage
@@ -372,18 +338,10 @@ export default function App() {
             />
           )}
           {view === "players" && (
-            <PlayerManager
-              canManage={isAppAdmin}
-              onChanged={refresh}
-              onNotice={setNotice}
-            />
+            <PlayerManager canManage={isAppAdmin} onChanged={refresh} onNotice={setNotice} />
           )}
           {view === "auction" && (
-            <AuctionDesk
-              profileId={profileId}
-              onChanged={refresh}
-              onNotice={setNotice}
-            />
+            <AuctionDesk profileId={profileId} onChanged={refresh} onNotice={setNotice} />
           )}
           {view === "gameweeks" && (
             <GameweekManager
@@ -394,18 +352,10 @@ export default function App() {
             />
           )}
           {view === "scores" && (
-            <ScoreManager
-              profileId={profileId}
-              onNotice={setNotice}
-              onChanged={refresh}
-            />
+            <ScoreManager profileId={profileId} onNotice={setNotice} onChanged={refresh} />
           )}
           {view === "trades" && (
-            <TradeManager
-              profileId={profileId}
-              onChanged={refresh}
-              onNotice={setNotice}
-            />
+            <TradeManager profileId={profileId} onChanged={refresh} onNotice={setNotice} />
           )}
           {view === "activity" && <ActivityView profileId={profileId} />}
         </section>
@@ -415,32 +365,29 @@ export default function App() {
 }
 
 function useRows(table: string, params: Record<string, string> = {}) {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const query = useMemo(() => JSON.stringify(params), [params]);
-  useEffect(() => {
-    let live = true;
-    setLoading(true);
-    api
-      .list(table, JSON.parse(query))
-      .then((data) => {
-        if (live) {
-          setRows(data);
-          setError("");
-        }
-      })
-      .catch((err) => {
-        if (live) setError(err.message);
-      })
-      .finally(() => {
-        if (live) setLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [table, query]);
-  return { rows, loading, error, setRows };
+  const queryClient = useQueryClient();
+  const paramsKey = useMemo(() => JSON.stringify(params), [params]);
+  const stableParams = useMemo(() => JSON.parse(paramsKey) as Record<string, string>, [paramsKey]);
+  const queryKey = useMemo(() => ["rows", table, stableParams] as const, [table, stableParams]);
+  const query = useQuery({
+    queryKey,
+    queryFn: () => api.list(table, stableParams),
+    placeholderData: (previous) => previous,
+  });
+  const setRows = useCallback(
+    (updater: Row[] | ((rows: Row[]) => Row[])) => {
+      queryClient.setQueryData<Row[]>(queryKey, (current = []) =>
+        typeof updater === "function" ? updater(current) : updater,
+      );
+    },
+    [queryClient, queryKey],
+  );
+  return {
+    rows: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : "",
+    setRows,
+  };
 }
 
 function Metric({
@@ -519,19 +466,13 @@ function DataTable({
         <tbody>
           {loading ? (
             <tr>
-              <td
-                colSpan={columns.length + (actions ? 1 : 0)}
-                className="empty"
-              >
+              <td colSpan={columns.length + (actions ? 1 : 0)} className="empty">
                 Loading records…
               </td>
             </tr>
           ) : rows.length === 0 ? (
             <tr>
-              <td
-                colSpan={columns.length + (actions ? 1 : 0)}
-                className="empty"
-              >
+              <td colSpan={columns.length + (actions ? 1 : 0)} className="empty">
                 {empty}
               </td>
             </tr>
@@ -540,14 +481,8 @@ function DataTable({
               <tr key={String(row.id || i)}>
                 {columns.map((c) => (
                   <td key={c.key}>
-                    {c.key === "approved" ||
-                      c.key === "is_locked" ||
-                      c.key === "is_active" ? (
-                      <span
-                        className={
-                          isTrue(row[c.key]) ? "badge green" : "badge amber"
-                        }
-                      >
+                    {c.key === "approved" || c.key === "is_locked" || c.key === "is_active" ? (
+                      <span className={isTrue(row[c.key]) ? "badge green" : "badge amber"}>
                         {isTrue(row[c.key]) ? "Yes" : "No"}
                       </span>
                     ) : (
@@ -592,12 +527,11 @@ function Overview({
         <div>
           <p className="eyebrow">LEAGUE OPERATIONS / 2026 SEASON</p>
           <h2>
-            {asText(profiles.find((p) => String(p.id) === profileId)?.name) ||
-              "Choose a league"}
+            {asText(profiles.find((p) => String(p.id) === profileId)?.name) || "Choose a league"}
           </h2>
           <p className="muted">
-            Manage the season, keep records consistent, and review changes
-            before they reach managers.
+            Manage the season, keep records consistent, and review changes before they reach
+            managers.
           </p>
         </div>
         <span className="season-pill">
@@ -606,12 +540,7 @@ function Overview({
         </span>
       </div>
       <div className="metric-grid">
-        <Metric
-          label="Fantasy teams"
-          value={teams.length}
-          icon={Users}
-          caption="In this league"
-        />
+        <Metric label="Fantasy teams" value={teams.length} icon={Users} caption="In this league" />
         <Metric
           label="Pending approvals"
           value={pending.length}
@@ -685,10 +614,7 @@ function Overview({
               <p className="eyebrow">SEASON FLOW</p>
               <h3>Gameweek calendar</h3>
             </div>
-            <button
-              className="text-button"
-              onClick={() => onNavigate("gameweeks")}
-            >
+            <button className="text-button" onClick={() => onNavigate("gameweeks")}>
               All weeks <ArrowUpRight size={14} />
             </button>
           </div>
@@ -715,9 +641,7 @@ function Overview({
         <div className="profile-cards">
           {profiles.map((profile) => (
             <article key={String(profile.id)}>
-              <span className="profile-symbol">
-                {asText(profile.name).slice(0, 1)}
-              </span>
+              <span className="profile-symbol">{asText(profile.name).slice(0, 1)}</span>
               <div>
                 <b>{asText(profile.name)}</b>
                 <small>{asText(profile.description) || "League profile"}</small>
@@ -771,8 +695,7 @@ function Approvals({
       <div className="panel">
         <div className="panel-head">
           <h3>
-            Waiting for approval{" "}
-            <span className="count-pill">{rows.length}</span>
+            Waiting for approval <span className="count-pill">{rows.length}</span>
           </h3>
           <span className="mini-tag">{error || "APPROVAL REQUIRED"}</span>
         </div>
@@ -861,11 +784,7 @@ function LeaguePage({
   return (
     <>
       {profile ? (
-        <LeagueSettings
-          profile={profile}
-          onChanged={onChanged}
-          onNotice={onNotice}
-        />
+        <LeagueSettings profile={profile} onChanged={onChanged} onNotice={onNotice} />
       ) : (
         <PanelTitle
           eyebrow="PROFILE CONFIGURATION"
@@ -876,24 +795,15 @@ function LeaguePage({
       {canCreate && (
         <form className="panel add-form" onSubmit={create}>
           <h3>
-            {profiles.length
-              ? "Add another league profile"
-              : "Create the first league profile"}
+            {profiles.length ? "Add another league profile" : "Create the first league profile"}
           </h3>
           <label>
             Profile name
-            <input
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <input required value={name} onChange={(e) => setName(e.target.value)} />
           </label>
           <label>
             Description
-            <input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <input value={description} onChange={(e) => setDescription(e.target.value)} />
           </label>
           <label>
             Starting team budget
@@ -929,18 +839,17 @@ function ManagerAssignments({
     profile_id: profileId,
     order: "sort_order.asc",
   });
-  const { rows: assignments, loading: assignmentLoading } = useRows(
-    "user_team_assignments",
-    { profile_id: profileId, limit: "500" },
-  );
+  const { rows: assignments, loading: assignmentLoading } = useRows("user_team_assignments", {
+    profile_id: profileId,
+    limit: "500",
+  });
   const [userId, setUserId] = useState("");
   const [teamId, setTeamId] = useState("");
   const [busy, setBusy] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const approvedUsers = users.filter((user) => isTrue(user.approved));
   useEffect(() => {
-    if (!userId && approvedUsers[0]?.user_id)
-      setUserId(String(approvedUsers[0].user_id));
+    if (!userId && approvedUsers[0]?.user_id) setUserId(String(approvedUsers[0].user_id));
     if (!teamId && teams[0]?.id) setTeamId(String(teams[0].id));
   }, [approvedUsers, teams, userId, teamId]);
   const save = async (event: React.FormEvent) => {
@@ -1000,13 +909,10 @@ function ManagerAssignments({
   };
   const userName = (id: unknown) => {
     const item = users.find((user) => String(user.user_id) === String(id));
-    return (
-      asText(item?.display_name) || asText(item?.email) || String(id || "—")
-    );
+    return asText(item?.display_name) || asText(item?.email) || String(id || "—");
   };
   const teamName = (id: unknown) =>
-    asText(teams.find((team) => String(team.id) === String(id))?.name) ||
-    String(id || "—");
+    asText(teams.find((team) => String(team.id) === String(id))?.name) || String(id || "—");
   return (
     <>
       <PanelTitle
@@ -1017,27 +923,18 @@ function ManagerAssignments({
       <form className="panel add-form" onSubmit={save}>
         <label>
           Approved manager
-          <select
-            required
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-          >
+          <select required value={userId} onChange={(e) => setUserId(e.target.value)}>
             <option value="">Choose a manager</option>
             {approvedUsers.map((user) => (
               <option key={String(user.user_id)} value={String(user.user_id)}>
-                {asText(user.display_name) || asText(user.email)} ·{" "}
-                {asText(user.email)}
+                {asText(user.display_name) || asText(user.email)} · {asText(user.email)}
               </option>
             ))}
           </select>
         </label>
         <label>
           Fantasy team
-          <select
-            required
-            value={teamId}
-            onChange={(e) => setTeamId(e.target.value)}
-          >
+          <select required value={teamId} onChange={(e) => setTeamId(e.target.value)}>
             <option value="">Choose a team</option>
             {teams.map((team) => (
               <option key={String(team.id)} value={String(team.id)}>
@@ -1056,11 +953,7 @@ function ManagerAssignments({
       <form className="panel add-form" onSubmit={resetPassword}>
         <label>
           Reset an existing account password
-          <select
-            required
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-          >
+          <select required value={userId} onChange={(e) => setUserId(e.target.value)}>
             <option value="">Choose an approved manager</option>
             {approvedUsers.map((user) => (
               <option key={String(user.user_id)} value={String(user.user_id)}>
@@ -1079,10 +972,7 @@ function ManagerAssignments({
             onChange={(e) => setNewPassword(e.target.value)}
           />
         </label>
-        <button
-          className="secondary"
-          disabled={!userId || newPassword.length < 8 || !!busy}
-        >
+        <button className="secondary" disabled={!userId || newPassword.length < 8 || !!busy}>
           Reset password
         </button>
       </form>
@@ -1104,11 +994,7 @@ function ManagerAssignments({
             { key: "created_at", label: "Assigned" },
           ]}
           actions={(row) => (
-            <button
-              className="text-button"
-              disabled={busy === row.id}
-              onClick={() => remove(row)}
-            >
+            <button className="text-button" disabled={busy === row.id} onClick={() => remove(row)}>
               Remove
             </button>
           )}
@@ -1175,8 +1061,7 @@ function LeagueSettings({
       setSaving(false);
     }
   };
-  const set = (key: string, value: unknown) =>
-    setForm((f) => ({ ...f, [key]: value }));
+  const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
   return (
     <>
       <PanelTitle
@@ -1335,9 +1220,7 @@ function TeamManager({
         ipl_team_id: franchises[0]?.id ? String(franchises[0].id) : "",
       });
       setAdding(false);
-      onNotice(
-        "Fantasy team created. Assign its manager from Managers & teams.",
-      );
+      onNotice("Fantasy team created. Assign its manager from Managers & teams.");
       onChanged();
     } catch (err) {
       onNotice(`Could not create team: ${(err as Error).message}`);
@@ -1389,9 +1272,7 @@ function TeamManager({
             IPL franchise
             <select
               value={form.ipl_team_id}
-              onChange={(e) =>
-                setForm({ ...form, ipl_team_id: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, ipl_team_id: e.target.value })}
             >
               <option value="">None</option>
               {franchises.map((team) => (
@@ -1510,10 +1391,7 @@ function PlayerManager({
         actions={
           canManage && (
             <>
-              <button
-                className="secondary"
-                onClick={() => setAddingFranchise((v) => !v)}
-              >
+              <button className="secondary" onClick={() => setAddingFranchise((v) => !v)}>
                 <Plus size={14} /> Add franchise
               </button>
               <button className="primary" onClick={() => setAdding((v) => !v)}>
@@ -1532,9 +1410,7 @@ function PlayerManager({
               required
               placeholder="csk"
               value={franchise.id}
-              onChange={(e) =>
-                setFranchise({ ...franchise, id: e.target.value })
-              }
+              onChange={(e) => setFranchise({ ...franchise, id: e.target.value })}
             />
           </label>
           <label>
@@ -1542,9 +1418,7 @@ function PlayerManager({
             <input
               required
               value={franchise.name}
-              onChange={(e) =>
-                setFranchise({ ...franchise, name: e.target.value })
-              }
+              onChange={(e) => setFranchise({ ...franchise, name: e.target.value })}
             />
           </label>
           <label>
@@ -1553,9 +1427,7 @@ function PlayerManager({
               required
               maxLength={20}
               value={franchise.short}
-              onChange={(e) =>
-                setFranchise({ ...franchise, short: e.target.value })
-              }
+              onChange={(e) => setFranchise({ ...franchise, short: e.target.value })}
             />
           </label>
           <label>
@@ -1563,9 +1435,7 @@ function PlayerManager({
             <input
               type="color"
               value={franchise.color}
-              onChange={(e) =>
-                setFranchise({ ...franchise, color: e.target.value })
-              }
+              onChange={(e) => setFranchise({ ...franchise, color: e.target.value })}
             />
           </label>
           <button className="primary" disabled={saving}>
@@ -1585,10 +1455,7 @@ function PlayerManager({
           </label>
           <label>
             Role
-            <select
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-            >
+            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
               <option>BAT</option>
               <option>WK</option>
               <option>BOWL</option>
@@ -1601,9 +1468,7 @@ function PlayerManager({
             <select
               required
               value={form.ipl_team_id}
-              onChange={(e) =>
-                setForm({ ...form, ipl_team_id: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, ipl_team_id: e.target.value })}
             >
               <option value="">Choose franchise</option>
               {franchises.map((team) => (
@@ -1615,10 +1480,7 @@ function PlayerManager({
           </label>
           <label>
             Tier
-            <select
-              value={form.tier}
-              onChange={(e) => setForm({ ...form, tier: e.target.value })}
-            >
+            <select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value })}>
               <option>glass</option>
               <option>bronze</option>
               <option>silver</option>
@@ -1770,11 +1632,7 @@ function AuctionDesk({
           </div>
           <label>
             Fantasy team
-            <select
-              required
-              value={teamId}
-              onChange={(e) => setTeamId(e.target.value)}
-            >
+            <select required value={teamId} onChange={(e) => setTeamId(e.target.value)}>
               {teams.map((t) => (
                 <option value={String(t.id)} key={String(t.id)}>
                   {asText(t.name)} · budget {asText(t.budget)}
@@ -1792,15 +1650,10 @@ function AuctionDesk({
           </label>
           <label>
             Player
-            <select
-              required
-              value={playerId}
-              onChange={(e) => setPlayerId(e.target.value)}
-            >
+            <select required value={playerId} onChange={(e) => setPlayerId(e.target.value)}>
               {unassigned.map((p) => (
                 <option value={String(p.id)} key={String(p.id)}>
-                  {asText(p.name)} · {asText(p.role)} · base{" "}
-                  {asText(p.base_price)}
+                  {asText(p.name)} · {asText(p.role)} · base {asText(p.base_price)}
                 </option>
               ))}
             </select>
@@ -1815,10 +1668,7 @@ function AuctionDesk({
               onChange={(e) => setPrice(e.target.value)}
             />
           </label>
-          <button
-            className="primary"
-            disabled={busy || !selectedPlayer || !selectedTeam}
-          >
+          <button className="primary" disabled={busy || !selectedPlayer || !selectedTeam}>
             {busy ? "Recording…" : "Confirm sale"}
           </button>
         </form>
@@ -1839,15 +1689,11 @@ function AuctionDesk({
           </div>
           <div className="summary-line total">
             <span>Budget after sale</span>
-            <b>
-              {selectedTeam
-                ? Number(selectedTeam.budget || 0) - Number(price || 0)
-                : "—"}
-            </b>
+            <b>{selectedTeam ? Number(selectedTeam.budget || 0) - Number(price || 0) : "—"}</b>
           </div>
           <p className="hint">
-            <Shield size={15} /> IPL franchises count as auction assets and do
-            not use one of the 15–18 player slots.
+            <Shield size={15} /> IPL franchises count as auction assets and do not use one of the
+            15–18 player slots.
           </p>
         </section>
       </div>
@@ -1856,8 +1702,7 @@ function AuctionDesk({
           <div>
             <p className="eyebrow">AVAILABLE ASSETS</p>
             <h3>
-              Unsold pool{" "}
-              <span className="count-pill">{unassigned.length}</span>
+              Unsold pool <span className="count-pill">{unassigned.length}</span>
             </h3>
           </div>
         </div>
@@ -2062,8 +1907,8 @@ function GameweekManager({
         />
       </div>
       <p className="hint">
-        <Shield size={15} /> Each deadline lock snapshots the current submitted
-        lineup and preserves a backup.
+        <Shield size={15} /> Each deadline lock snapshots the current submitted lineup and preserves
+        a backup.
       </p>
     </>
   );
@@ -2135,9 +1980,7 @@ function ScoreManager({
         gameweek_id: gameweekId,
         player_id: playerId,
         match_number: Number(matchNumber) || 1,
-        ...Object.fromEntries(
-          Object.entries(values).map(([k, v]) => [k, Number(v) || 0]),
-        ),
+        ...Object.fromEntries(Object.entries(values).map(([k, v]) => [k, Number(v) || 0])),
         ...flags,
         participation_type: flags.is_dnp ? "not_played" : "played",
         created_at: new Date().toISOString(),
@@ -2153,8 +1996,7 @@ function ScoreManager({
     }
   };
   const playerName = (id: unknown) =>
-    asText(players.find((p) => String(p.id) === String(id))?.name) ||
-    String(id || "—");
+    asText(players.find((p) => String(p.id) === String(id))?.name) || String(id || "—");
   return (
     <>
       <PanelTitle
@@ -2166,11 +2008,7 @@ function ScoreManager({
         <h3>Enter one player's match line</h3>
         <label>
           Gameweek
-          <select
-            required
-            value={gameweekId}
-            onChange={(e) => setGameweekId(e.target.value)}
-          >
+          <select required value={gameweekId} onChange={(e) => setGameweekId(e.target.value)}>
             {weeks.map((w) => (
               <option key={String(w.id)} value={String(w.id)}>
                 {asText(w.name)}
@@ -2180,11 +2018,7 @@ function ScoreManager({
         </label>
         <label>
           Player
-          <select
-            required
-            value={playerId}
-            onChange={(e) => setPlayerId(e.target.value)}
-          >
+          <select required value={playerId} onChange={(e) => setPlayerId(e.target.value)}>
             {players.map((p) => (
               <option key={String(p.id)} value={String(p.id)}>
                 {asText(p.name)}
@@ -2210,9 +2044,7 @@ function ScoreManager({
                 min="0"
                 step={key === "overs_bowled" ? "0.1" : "1"}
                 value={value}
-                onChange={(e) =>
-                  setValues((v) => ({ ...v, [key]: e.target.value }))
-                }
+                onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
               />
             </label>
           ))}
@@ -2234,10 +2066,7 @@ function ScoreManager({
             </label>
           ))}
         </div>
-        <button
-          className="primary"
-          disabled={saving || !profileId || !gameweekId || !playerId}
-        >
+        <button className="primary" disabled={saving || !profileId || !gameweekId || !playerId}>
           {saving ? "Saving…" : "Save match facts"}
         </button>
       </form>
@@ -2281,11 +2110,7 @@ function ScoreManager({
           ]}
         />
       </div>
-      <AdminBonusManager
-        profileId={profileId}
-        onChanged={onChanged}
-        onNotice={onNotice}
-      />
+      <AdminBonusManager profileId={profileId} onChanged={onChanged} onNotice={onNotice} />
     </>
   );
 }
@@ -2329,9 +2154,7 @@ function AdminBonusManager({
         created_at: new Date().toISOString(),
       });
       setNote("");
-      onNotice(
-        "Point adjustment recorded. Recalculate the gameweek to include it.",
-      );
+      onNotice("Point adjustment recorded. Recalculate the gameweek to include it.");
       onChanged();
     } catch (err) {
       onNotice(`Could not record adjustment: ${(err as Error).message}`);
@@ -2344,16 +2167,11 @@ function AdminBonusManager({
       <form className="panel add-form" onSubmit={add}>
         <h3>Record an admin point adjustment</h3>
         <p className="muted">
-          Use for documented league adjustments and Straddle outcomes (usually
-          +150 or −150).
+          Use for documented league adjustments and Straddle outcomes (usually +150 or −150).
         </p>
         <label>
           Fantasy team
-          <select
-            required
-            value={teamId}
-            onChange={(e) => setTeamId(e.target.value)}
-          >
+          <select required value={teamId} onChange={(e) => setTeamId(e.target.value)}>
             {teams.map((team) => (
               <option key={String(team.id)} value={String(team.id)}>
                 {asText(team.name)}
@@ -2363,11 +2181,7 @@ function AdminBonusManager({
         </label>
         <label>
           Gameweek
-          <select
-            required
-            value={weekId}
-            onChange={(e) => setWeekId(e.target.value)}
-          >
+          <select required value={weekId} onChange={(e) => setWeekId(e.target.value)}>
             {weeks.map((week) => (
               <option key={String(week.id)} value={String(week.id)}>
                 {asText(week.name)}
@@ -2386,11 +2200,7 @@ function AdminBonusManager({
         </label>
         <label>
           Reason
-          <input
-            required
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
+          <input required value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
         <button className="primary" disabled={saving || !teamId || !weekId}>
           {saving ? "Saving…" : "Record adjustment"}
@@ -2434,9 +2244,7 @@ function TradeManager({
     setBusy(String(row.id));
     try {
       await api.rpc("execute_trade", { trade_id: row.id });
-      setRows((rs) =>
-        rs.map((x) => (x.id === row.id ? { ...x, status: "accepted" } : x)),
-      );
+      setRows((rs) => rs.map((x) => (x.id === row.id ? { ...x, status: "accepted" } : x)));
       onNotice("Trade accepted and processed.");
       onChanged();
     } catch (err) {
@@ -2450,9 +2258,7 @@ function TradeManager({
     setBusy(String(row.id));
     try {
       await api.rpc("admin_cancel_trade", { trade_id: row.id });
-      setRows((rs) =>
-        rs.map((x) => (x.id === row.id ? { ...x, status: "cancelled" } : x)),
-      );
+      setRows((rs) => rs.map((x) => (x.id === row.id ? { ...x, status: "cancelled" } : x)));
       onNotice("Pending trade cancelled.");
       onChanged();
     } catch (err) {
