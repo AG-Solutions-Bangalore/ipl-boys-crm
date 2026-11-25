@@ -6,10 +6,10 @@ import { useSession } from "@/modules/auth/hooks/use-session";
 import { BrandMark } from "@/shared/components/brand-mark";
 import { usePrefersReducedMotion } from "@/shared/hooks/use-prefers-reduced-motion";
 
-const mono = { fontFamily: '"DM Mono", monospace' } as const;
+const mono = { fontFamily: '"Geist Mono", monospace' } as const;
 
 const fieldClass =
-  "h-11 w-full rounded-lg border border-zinc-800 bg-[#17181d] px-3.5 text-sm text-zinc-100 outline-none transition-[border-color,box-shadow,background-color] duration-150 hover:border-zinc-700 focus:border-zinc-400 focus:bg-[#1c1d23] focus:ring-2 focus:ring-zinc-400/20";
+  "h-11 w-full rounded-lg border border-zinc-800 bg-[#17181d] px-3.5 text-sm text-zinc-100 outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-zinc-500 hover:border-zinc-700 focus:border-zinc-400 focus:bg-[#1c1d23] focus:ring-2 focus:ring-zinc-400/20";
 
 const highlights = [
   {
@@ -161,6 +161,7 @@ export function LoginPage() {
                   autoComplete="username"
                   autoCapitalize="none"
                   spellCheck={false}
+                  placeholder="you@fantasyworld.com"
                   className={fieldClass}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
@@ -176,6 +177,7 @@ export function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     required
                     autoComplete="current-password"
+                    placeholder="••••••••"
                     className={`${fieldClass} pr-11`}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
