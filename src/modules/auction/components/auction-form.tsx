@@ -95,6 +95,11 @@ export function AuctionForm({
               onChange={(e) => onTeamChange(e.target.value)}
               className={selectClass}
             >
+              {teams.length === 0 && (
+                <option value="" disabled className="bg-card text-foreground">
+                  No fantasy teams in this league
+                </option>
+              )}
               {teams.map((team) => (
                 <option
                   value={String(team.id)}
