@@ -18,7 +18,7 @@ export function CreateTeamForm({
   onClose: () => void;
 }) {
   const createTeam = useCreateTeam();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<TeamFormValues>({
     name: "",
@@ -60,7 +60,7 @@ export function CreateTeamForm({
       onClose();
       notify("Fantasy team created. Assign its manager from Managers & teams.");
     } catch (err) {
-      notify(`Could not create team: ${(err as Error).message}`);
+      showError(`Could not create team: ${(err as Error).message}`);
     } finally {
       setSaving(false);
     }

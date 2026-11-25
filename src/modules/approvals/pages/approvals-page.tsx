@@ -9,7 +9,7 @@ import { useAppFeedback } from "@/shared/context/feedback-context";
 export function ApprovalsPage() {
   const { rows, loading, error, setRows } = usePendingApprovals();
   const decideApproval = useDecideApproval();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [working, setWorking] = useState("");
 
   const decide = async (row: ApprovalProfile, approved: boolean) => {
@@ -20,7 +20,7 @@ export function ApprovalsPage() {
       setRows((current) => current.filter((item) => item.id !== row.id));
       notify(approved ? "Account approved." : "Account access denied.");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setWorking("");
     }

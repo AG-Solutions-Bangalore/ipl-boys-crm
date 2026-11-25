@@ -22,7 +22,7 @@ export function CreateLeagueForm({
   userId: string;
 }) {
   const createLeague = useCreateLeague();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [budget, setBudget] = useState("5000");
@@ -53,7 +53,7 @@ export function CreateLeagueForm({
       setBudget("5000");
       notify("League profile created.");
     } catch (err) {
-      notify(`Could not create league: ${(err as Error).message}`);
+      showError(`Could not create league: ${(err as Error).message}`);
     } finally {
       setSaving(false);
     }

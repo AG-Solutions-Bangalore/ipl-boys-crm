@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { useSession } from "@/modules/auth/hooks/use-session";
 import { useLeagueProfiles } from "@/modules/leagues/hooks/use-leagues";
 import type { LeagueProfile } from "@/modules/leagues/types/league.types";
-import { useAppFeedback } from "@/shared/context/feedback-context";
 
 type AdminContextValue = {
   profiles: LeagueProfile[];
@@ -15,7 +14,6 @@ const AdminContext = createContext<AdminContextValue | null>(null);
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const { isAdmin } = useSession();
-  const { showError } = useAppFeedback();
   const profilesQuery = useLeagueProfiles(isAdmin);
   const profiles = useMemo(() => profilesQuery.data ?? [], [profilesQuery.data]);
   const [profileId, setProfileId] = useState("");
@@ -23,10 +21,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!profileId && profiles[0]?.id) setProfileId(String(profiles[0].id));
   }, [profileId, profiles]);
-
-  useEffect(() => {
-    if (profilesQuery.error) showError(profilesQuery.error.message);
-  }, [profilesQuery.error, showError]);
 
   const value = useMemo<AdminContextValue>(
     () => ({

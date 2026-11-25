@@ -68,7 +68,7 @@ export function ScoreEntryForm({
   players: Player[];
 }) {
   const saveStats = useSaveMatchStats();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [gameweekId, setGameweekId] = useState("");
   const [playerId, setPlayerId] = useState("");
   const [matchNumber, setMatchNumber] = useState("1");
@@ -103,7 +103,7 @@ export function ScoreEntryForm({
         "Player match stats saved. Recalculate the gameweek after entering all match results.",
       );
     } catch (err) {
-      notify(`Could not save match stats: ${(err as Error).message}`);
+      showError(`Could not save match stats: ${(err as Error).message}`);
     } finally {
       setSaving(false);
     }

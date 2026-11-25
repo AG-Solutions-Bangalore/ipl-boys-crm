@@ -1,6 +1,7 @@
 import { cn } from "cn";
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
+import toast from "react-hot-toast";
 import { NavLink } from "react-router-dom";
 import { useSession } from "@/modules/auth/hooks/use-session";
 import { navigation } from "@/modules/shell/config/navigation";
@@ -134,10 +135,10 @@ export function Sidebar({
             type="button"
             title={collapsed ? "Sign out" : undefined}
             className="nav-item sidebar-signout"
-            onClick={() => {
-              setMobileOpen(false);
-              void signOut();
-            }}
+              onClick={() => {
+                setMobileOpen(false);
+                void signOut().then(() => toast.success("Signed out."));
+              }}
           >
             <span className="nav-item-icon" aria-hidden="true">
               <LogOut size={17} strokeWidth={1.75} />

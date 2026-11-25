@@ -1,6 +1,7 @@
 import { GrainGradient } from "@paper-design/shaders-react";
 import { AlertCircle, ArrowRight, Eye, EyeOff, Gavel, Loader2, Swords, Trophy } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import toast from "react-hot-toast";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useSession } from "@/modules/auth/hooks/use-session";
 import { BrandMark } from "@/shared/components/brand-mark";
@@ -116,9 +117,12 @@ export function LoginPage() {
     setError("");
     try {
       await signIn(email.trim(), password);
+      toast.success("Signed in successfully.");
       navigate("/overview", { replace: true });
     } catch (err) {
-      setError((err as Error).message);
+      const message = (err as Error).message;
+      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }

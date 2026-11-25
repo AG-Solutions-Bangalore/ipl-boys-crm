@@ -12,7 +12,7 @@ const emptyFranchise = (): FranchiseFormValues => ({
 
 export function AddFranchiseForm({ onClose }: { onClose: () => void }) {
   const createFranchise = useCreateFranchise();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [saving, setSaving] = useState(false);
   const [franchise, setFranchise] = useState<FranchiseFormValues>(emptyFranchise);
 
@@ -33,7 +33,7 @@ export function AddFranchiseForm({ onClose }: { onClose: () => void }) {
       onClose();
       notify("IPL franchise added.");
     } catch (err) {
-      notify(`Could not add franchise: ${(err as Error).message}`);
+      showError(`Could not add franchise: ${(err as Error).message}`);
     } finally {
       setSaving(false);
     }

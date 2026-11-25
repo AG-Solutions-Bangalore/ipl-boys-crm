@@ -22,7 +22,7 @@ export function ManagersPage() {
   const assignManager = useAssignManager();
   const removeAssignment = useRemoveAssignment();
   const resetPassword = useResetPassword();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [userId, setUserId] = useState("");
   const [teamId, setTeamId] = useState("");
   const [busy, setBusy] = useState("");
@@ -42,13 +42,13 @@ export function ManagersPage() {
     try {
       const current = assignments.rows.find((row) => String(row.user_id) === userId);
       if (current && String(current.team_id) === teamId) {
-        notify("This manager is already assigned to that team.");
+        showError("This manager is already assigned to that team.");
         return;
       }
       await assignManager.mutateAsync({ userId, profileId, teamId });
       notify("Manager assigned to the selected team.");
     } catch (err) {
-      notify(`Assignment failed: ${(err as Error).message}`);
+      showError(`Assignment failed: ${(err as Error).message}`);
     } finally {
       setBusy("");
     }
@@ -61,7 +61,7 @@ export function ManagersPage() {
       await removeAssignment.mutateAsync(String(row.id));
       notify("Manager assignment removed.");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setBusy("");
     }
@@ -78,7 +78,7 @@ export function ManagersPage() {
         "Password reset. Share the temporary password with the manager through your usual private channel.",
       );
     } catch (err) {
-      notify(`Password reset failed: ${(err as Error).message}`);
+      showError(`Password reset failed: ${(err as Error).message}`);
     } finally {
       setBusy("");
     }

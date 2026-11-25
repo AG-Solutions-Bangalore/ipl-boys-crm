@@ -14,7 +14,7 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
   const teams = useAdminBonusTeams(profileId);
   const gameweeks = useScoreGameweeks();
   const createBonus = useCreateAdminBonus();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [teamId, setTeamId] = useState("");
   const [weekId, setWeekId] = useState("");
   const [points, setPoints] = useState("150");
@@ -42,7 +42,7 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
       setNote("");
       notify("Point adjustment recorded. Recalculate the gameweek to include it.");
     } catch (err) {
-      notify(`Could not record adjustment: ${(err as Error).message}`);
+      showError(`Could not record adjustment: ${(err as Error).message}`);
     } finally {
       setSaving(false);
     }

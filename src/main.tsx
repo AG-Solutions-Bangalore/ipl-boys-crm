@@ -6,6 +6,7 @@ import App from "./App";
 import { ThemeProvider } from "./components/theme-provider";
 import { queryClient } from "./lib/query-client";
 import { SessionProvider } from "./modules/auth/hooks/use-session";
+import { AppToaster } from "./shared/components/app-toaster";
 import "./styles.css";
 import "./overrides.css";
 
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
           </BrowserRouter>
         </SessionProvider>
       </QueryClientProvider>
+      <AppToaster />
     </ThemeProvider>
   </React.StrictMode>,
 );

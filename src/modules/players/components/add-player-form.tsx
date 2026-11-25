@@ -15,7 +15,7 @@ export function AddPlayerForm({
   onClose: () => void;
 }) {
   const createPlayer = useCreatePlayer();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<PlayerFormValues>({
     name: "",
@@ -43,7 +43,7 @@ export function AddPlayerForm({
       onClose();
       notify("Player added to the catalog.");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setSaving(false);
     }

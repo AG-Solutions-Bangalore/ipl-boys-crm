@@ -46,7 +46,7 @@ const buildForm = (profile: LeagueProfile): LeagueSettingsForm => ({
 
 export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
   const updateLeague = useUpdateLeague();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [form, setForm] = useState<LeagueSettingsForm>(() => buildForm(profile));
   const [saving, setSaving] = useState(false);
 
@@ -96,7 +96,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
       await updateLeague.mutateAsync({ id: String(profile.id), row: payload });
       notify("League settings saved.");
     } catch (err) {
-      notify(`Could not save: ${(err as Error).message}`);
+      showError(`Could not save: ${(err as Error).message}`);
     } finally {
       setSaving(false);
     }

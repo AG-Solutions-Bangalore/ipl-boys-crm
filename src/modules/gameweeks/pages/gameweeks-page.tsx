@@ -23,7 +23,7 @@ export function GameweeksPage() {
   const updateGameweek = useUpdateGameweek();
   const setActiveGameweek = useSetActiveGameweek();
   const recalculateGameweek = useRecalculateGameweek();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [busy, setBusy] = useState("");
   const [adding, setAdding] = useState(false);
   const nextNumber = Math.max(0, ...gameweeks.rows.map((row) => Number(row.number) || 0)) + 1;
@@ -35,7 +35,7 @@ export function GameweeksPage() {
       await updateGameweek.mutateAsync({ id: String(row.id), row: patch });
       notify("Gameweek updated.");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setBusy("");
     }
@@ -51,7 +51,7 @@ export function GameweeksPage() {
       });
       notify(`Scores recalculated for ${asText(row.name)}.`);
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setBusy("");
     }
@@ -64,7 +64,7 @@ export function GameweeksPage() {
       await setActiveGameweek.mutateAsync(String(row.id));
       notify(`${asText(row.name)} is active.`);
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setBusy("");
     }

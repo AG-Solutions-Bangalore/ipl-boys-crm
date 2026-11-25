@@ -12,7 +12,7 @@ export function TradesPage() {
   const trades = useTrades(profileId);
   const executeTrade = useExecuteTrade();
   const cancelTrade = useCancelTrade();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [busy, setBusy] = useState("");
 
   const execute = async (row: Trade) => {
@@ -25,7 +25,7 @@ export function TradesPage() {
       );
       notify("Trade accepted and processed.");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setBusy("");
     }
@@ -41,7 +41,7 @@ export function TradesPage() {
       );
       notify("Pending trade cancelled.");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setBusy("");
     }

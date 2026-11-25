@@ -1,29 +1,23 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import toast from "react-hot-toast";
 
 type FeedbackContextValue = {
-  notice: string;
-  error: string;
   notify: (message: string) => void;
   showError: (message: string) => void;
-  dismissNotice: () => void;
-  dismissError: () => void;
 };
 
 const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
+  const notify = useCallback((message: string) => {
+    toast.success(message);
+  }, []);
 
-  const notify = useCallback((message: string) => setNotice(message), []);
-  const showError = useCallback((message: string) => setError(message), []);
-  const dismissNotice = useCallback(() => setNotice(""), []);
-  const dismissError = useCallback(() => setError(""), []);
+  const showError = useCallback((message: string) => {
+    toast.error(message);
+  }, []);
 
-  const value = useMemo(
-    () => ({ notice, error, notify, showError, dismissNotice, dismissError }),
-    [notice, error, notify, showError, dismissNotice, dismissError],
-  );
+  const value = useMemo(() => ({ notify, showError }), [notify, showError]);
 
   return <FeedbackContext.Provider value={value}>{children}</FeedbackContext.Provider>;
 }

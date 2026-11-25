@@ -11,7 +11,7 @@ export function CreateGameweekForm({
   onClose: () => void;
 }) {
   const createGameweek = useCreateGameweek();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<GameweekFormValues>({
     name: `Gameweek ${nextNumber}`,
@@ -44,7 +44,7 @@ export function CreateGameweekForm({
       onClose();
       notify("Gameweek created.");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setSaving(false);
     }

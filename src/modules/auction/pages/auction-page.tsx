@@ -19,7 +19,7 @@ export function AuctionPage() {
   const players = useAuctionPlayers();
   const assignments = useAuctionAssignments(profileId);
   const sellMutation = useExecuteAuctionSale();
-  const { notify } = useAppFeedback();
+  const { notify, showError } = useAppFeedback();
   const [teamId, setTeamId] = useState("");
   const [playerId, setPlayerId] = useState("");
   const [price, setPrice] = useState("");
@@ -59,7 +59,7 @@ export function AuctionPage() {
       notify(`${asText(selectedPlayer?.name)} sold to ${asText(selectedTeam?.name)} for ${price}.`);
       setPlayerId("");
     } catch (err) {
-      notify((err as Error).message);
+      showError((err as Error).message);
     } finally {
       setBusy(false);
     }
