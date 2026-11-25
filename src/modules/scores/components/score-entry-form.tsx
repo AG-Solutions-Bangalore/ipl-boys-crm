@@ -6,6 +6,15 @@ import { useSaveMatchStats } from "@/modules/scores/hooks/use-scores";
 import type { MatchFlags, MatchStatValues } from "@/modules/scores/types/score.types";
 import { useAppFeedback } from "@/shared/context/feedback-context";
 
+const getGameweekLabel = (week: Gameweek) => {
+  const name = asText(week.name).trim();
+  const id = String(week.id || "").trim();
+  if (name) {
+    return id ? `${name} (${id})` : name;
+  }
+  return id ? `No name (${id})` : "No name";
+};
+
 const defaultValues: MatchStatValues = {
   runs: "0",
   balls: "0",
@@ -81,6 +90,14 @@ export function ScoreEntryForm({
     if (!playerId && players[0]?.id) setPlayerId(String(players[0].id));
   }, [gameweekId, playerId, gameweeks, players]);
 
+  const resetForm = () => {
+    setGameweekId(gameweeks[0]?.id ? String(gameweeks[0].id) : "");
+    setPlayerId(players[0]?.id ? String(players[0].id) : "");
+    setMatchNumber("1");
+    setValues(defaultValues);
+    setFlags(defaultFlags);
+  };
+
   const addStats = async (event: FormEvent) => {
     event.preventDefault();
     if (!profileId || !gameweekId || !playerId) return;
@@ -129,7 +146,7 @@ export function ScoreEntryForm({
           >
             {gameweeks.map((week) => (
               <option key={String(week.id)} value={String(week.id)}>
-                {asText(week.name)}
+                {getGameweekLabel(week)}
               </option>
             ))}
           </select>
@@ -197,7 +214,15 @@ export function ScoreEntryForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-end border-t border-border pt-4">
+      <div className="flex items-center justify-end gap-2.5 border-t border-border pt-4">
+        <button
+          type="button"
+          className="secondary"
+          disabled={saving}
+          onClick={resetForm}
+        >
+          Reset form
+        </button>
         <button
           type="submit"
           className="primary"

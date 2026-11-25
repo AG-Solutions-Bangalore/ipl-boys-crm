@@ -1,13 +1,28 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { asText } from "@/lib/format";
+import type { Gameweek } from "@/modules/gameweeks/types/gameweek.types";
 import {
   useAdminBonusTeams,
   useAdminBonuses,
   useCreateAdminBonus,
 } from "@/modules/scores/hooks/use-admin-bonuses";
 import { useScoreGameweeks } from "@/modules/scores/hooks/use-scores";
+import type { FantasyTeam } from "@/modules/teams/types/team.types";
 import { DataTable } from "@/shared/components/data-table";
 import { useAppFeedback } from "@/shared/context/feedback-context";
+
+const getGameweekLabel = (week: Gameweek) => {
+  const name = asText(week.name).trim();
+  const id = String(week.id || "").trim();
+  if (name) {
+    return id ? `${name} (${id})` : name;
+  }
+  return id ? `No name (${id})` : "No name";
+};
+
+const getTeamLabel = (team: FantasyTeam) => {
+  return asText(team.name).trim() || "Unnamed team";
+};
 
 export function AdminBonusManager({ profileId }: { profileId: string }) {
   const bonuses = useAdminBonuses(profileId);
@@ -25,6 +40,13 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
     if (!teamId && teams.rows[0]?.id) setTeamId(String(teams.rows[0].id));
     if (!weekId && gameweeks.rows[0]?.id) setWeekId(String(gameweeks.rows[0].id));
   }, [teamId, weekId, teams.rows, gameweeks.rows]);
+
+  const resetForm = () => {
+    setTeamId(teams.rows[0]?.id ? String(teams.rows[0].id) : "");
+    setWeekId(gameweeks.rows[0]?.id ? String(gameweeks.rows[0].id) : "");
+    setPoints("150");
+    setNote("");
+  };
 
   const add = async (event: FormEvent) => {
     event.preventDefault();
@@ -59,10 +81,21 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
         </div>
         <label>
           Fantasy team
-          <select required value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+          <select
+            required
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
+            disabled={teams.loading || teams.rows.length === 0}
+          >
+            {teams.loading && <option value="">Loading teams…</option>}
+            {!teams.loading && teams.rows.length === 0 && (
+              <option value="" disabled>
+                No fantasy teams in this league
+              </option>
+            )}
             {teams.rows.map((team) => (
               <option key={String(team.id)} value={String(team.id)}>
-                {asText(team.name)}
+                {getTeamLabel(team)}
               </option>
             ))}
           </select>
@@ -72,7 +105,7 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
           <select required value={weekId} onChange={(e) => setWeekId(e.target.value)}>
             {gameweeks.rows.map((week) => (
               <option key={String(week.id)} value={String(week.id)}>
-                {asText(week.name)}
+                {getGameweekLabel(week)}
               </option>
             ))}
           </select>
@@ -94,6 +127,14 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
           <button type="submit" className="primary" disabled={saving || !teamId || !weekId}>
             {saving ? "Saving…" : "Record adjustment"}
           </button>
+          <button
+            type="button"
+            className="secondary"
+            disabled={saving}
+            onClick={resetForm}
+          >
+            Reset form
+          </button>
         </div>
       </form>
       <div className="panel">
@@ -101,11 +142,21 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
           <h3>Recorded adjustments</h3>
         </div>
         <DataTable
-          rows={bonuses.rows}
+          rows={bonuses.rows.map((row) => ({
+            ...row,
+            gameweek_label: (() => {
+              const found = gameweeks.rows.find((w) => String(w.id) === String(row.gameweek_id));
+              return found ? getGameweekLabel(found) : String(row.gameweek_id || "—");
+            })(),
+            team_name: (() => {
+              const found = teams.rows.find((t) => String(t.id) === String(row.team_id));
+              return found ? getTeamLabel(found) : String(row.team_id || "—");
+            })(),
+          }))}
           loading={bonuses.loading}
           columns={[
-            { key: "gameweek_id", label: "Gameweek" },
-            { key: "team_id", label: "Team ID" },
+            { key: "gameweek_label", label: "Gameweek" },
+            { key: "team_name", label: "Team" },
             { key: "points", label: "Points" },
             { key: "note", label: "Reason" },
           ]}
