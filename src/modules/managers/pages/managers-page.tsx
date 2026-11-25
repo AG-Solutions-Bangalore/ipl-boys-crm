@@ -1,3 +1,4 @@
+import { Check, Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { asText, isTrue } from "@/lib/format";
 import {
@@ -27,6 +28,7 @@ export function ManagersPage() {
   const [teamId, setTeamId] = useState("");
   const [busy, setBusy] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const approvedUsers = users.rows.filter((user) => isTrue(user.approved));
 
@@ -136,6 +138,9 @@ export function ManagersPage() {
       <form className="panel add-form" onSubmit={reset}>
         <div className="form-head">
           <h3>Reset manager password</h3>
+          <p className="muted">
+            Set a temporary password of at least 8 characters for an approved manager account.
+          </p>
         </div>
         <label>
           Approved account
@@ -143,28 +148,53 @@ export function ManagersPage() {
             <option value="">Choose an approved manager</option>
             {approvedUsers.map((user) => (
               <option key={String(user.user_id)} value={String(user.user_id)}>
-                {asText(user.email)}
+                {asText(user.display_name) || asText(user.email)} · {asText(user.email)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          Temporary password
-          <input
-            required
-            minLength={8}
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
+          <span>Temporary password</span>
+          <div className="relative">
+            <input
+              required
+              minLength={8}
+              type={showPassword ? "text" : "password"}
+              placeholder="Minimum 8 characters"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={{ paddingRight: "36px" }}
+            />
+            <button
+              type="button"
+              className="absolute top-1/2 right-2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-[var(--muted-ink)] transition-colors hover:text-[var(--text-primary)]"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+            </button>
+          </div>
         </label>
-        <button
-          type="submit"
-          className="secondary"
-          disabled={!userId || newPassword.length < 8 || !!busy}
-        >
-          Reset password
-        </button>
+        <div className="add-form-actions">
+          <button
+            type="submit"
+            className="secondary"
+            disabled={!userId || newPassword.length < 8 || !!busy}
+          >
+            {busy === "password" ? "Resetting…" : "Reset password"}
+          </button>
+        </div>
+        <div className="col-span-full -mt-1 text-xs">
+          {newPassword.length >= 8 ? (
+            <span className="flex items-center gap-1.5 font-medium text-[var(--green)]">
+              <Check size={13} strokeWidth={2.5} /> Password meets requirements ({newPassword.length} characters)
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-[var(--muted-ink)]">
+              <ShieldAlert size={13} /> Minimum 8 characters (currently {newPassword.length}/8)
+            </span>
+          )}
+        </div>
       </form>
       <div className="panel">
         <div className="panel-head">
