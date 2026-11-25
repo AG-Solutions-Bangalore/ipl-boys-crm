@@ -64,6 +64,17 @@ select,
 textarea {
   font: inherit;
 }
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background-color: var(--surface);
+  border: 1px solid var(--input);
+  color: var(--text-primary);
+}
+select option {
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
 button {
   cursor: pointer;
 }
@@ -108,7 +119,7 @@ button:disabled {
 .brand-mark {
   width: 32px;
   height: 32px;
-  background: #1a1f26;
+  background: var(--surface2);
   border: 1px solid var(--line-strong);
   color: var(--gold);
   border-radius: 6px;
@@ -238,8 +249,8 @@ button:disabled {
   font-size: 12px;
 }
 .profile-select option {
-  background: #14181d;
-  color: #edf0e9;
+  background: var(--surface);
+  color: var(--text-primary);
 }
 .profile-select svg {
   position: absolute;
@@ -265,14 +276,14 @@ button:disabled {
   margin-top: 1px;
 }
 .avatar {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-content: center;
-  background: #1a1f26;
+  background: var(--surface2);
   color: var(--gold);
-  border: 1px solid var(--line);
-  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
 }
@@ -473,14 +484,14 @@ button:disabled {
   color: var(--muted-ink);
 }
 .profile-symbol {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-content: center;
-  background: #1a1f26;
-  color: var(--text-secondary);
-  border-radius: 4px;
-  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--text-primary);
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
   font: 600 12px "DM Mono", monospace;
 }
 .profile-cards b {
@@ -603,25 +614,29 @@ button:disabled {
 .field-grid label,
 .login-card label {
   display: grid;
-  gap: 7px;
-  color: #a6adaa;
+  gap: 6px;
+  color: var(--text-secondary);
   font-size: 11px;
+  font-weight: 500;
 }
 .field-grid input,
 .field-grid textarea,
 .login-card input {
   width: 100%;
-  background: #0b0e11;
-  border: 1px solid #303638;
-  color: #edf0e9;
-  padding: 10px 11px;
-  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--input);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   outline: 0;
+  transition: border-color 150ms, box-shadow 150ms;
 }
 .field-grid input:focus,
 .field-grid textarea:focus,
 .login-card input:focus {
-  border-color: #a17e43;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold);
 }
 .field-grid textarea {
   font:
@@ -646,41 +661,82 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 13px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
-  background: #0d1013;
-  border-radius: 4px;
+  background: var(--surface2);
+  border-radius: 6px;
+  color: var(--text-primary);
+  transition: background-color 150ms, border-color 150ms;
 }
-.toggle-row b {
+.toggle-row:hover {
+  border-color: var(--line-strong);
+}
+.toggle-row b,
+.toggle-row span {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 .toggle-row small {
   display: block;
   color: var(--muted-ink);
-  font-size: 9px;
-  margin-top: 4px;
+  font-size: 10px;
+  margin-top: 2px;
 }
 .toggle-row input {
   accent-color: var(--gold);
   width: 16px;
   height: 16px;
+  cursor: pointer;
 }
 .primary {
-  background: var(--gold);
-  color: #111318;
-  border: 0;
-  border-radius: 4px;
-  padding: 10px 15px;
-  font-size: 11px;
-  font-weight: 700;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: opacity 150ms, filter 150ms;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-.primary:hover {
-  background: #f0cb7b;
+.primary:hover:not(:disabled) {
+  opacity: 0.92;
+  filter: brightness(1.05);
 }
 .primary.small {
-  padding: 7px 9px;
-  font-size: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+.secondary {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+.secondary:hover:not(:disabled) {
+  background: var(--surface2);
+  border-color: var(--line-strong);
+  color: var(--text-primary);
+}
+.secondary.small {
+  padding: 6px 10px;
+  font-size: 11px;
 }
 .full {
   width: 100%;

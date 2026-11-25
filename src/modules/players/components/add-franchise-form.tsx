@@ -76,9 +76,14 @@ export function AddFranchiseForm({ onClose }: { onClose: () => void }) {
           onChange={(e) => setFranchise({ ...franchise, color: e.target.value })}
         />
       </label>
-      <button className="primary" disabled={saving}>
-        {saving ? "Adding…" : "Save franchise"}
-      </button>
+      <div className="flex items-center gap-2.5">
+        <button className="primary" disabled={saving}>
+          {saving ? "Adding…" : "Save franchise"}
+        </button>
+        <button type="button" className="secondary" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }

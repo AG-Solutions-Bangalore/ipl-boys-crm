@@ -113,9 +113,14 @@ export function AddPlayerForm({
           onChange={(e) => setForm({ ...form, base_price: e.target.value })}
         />
       </label>
-      <button className="primary" disabled={saving || franchiseLoading || franchises.length === 0}>
-        {saving ? "Adding…" : "Save player"}
-      </button>
+      <div className="flex items-center gap-2.5">
+        <button className="primary" disabled={saving || franchiseLoading || franchises.length === 0}>
+          {saving ? "Adding…" : "Save player"}
+        </button>
+        <button type="button" className="secondary" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }

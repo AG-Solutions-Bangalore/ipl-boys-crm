@@ -84,70 +84,91 @@ export function ScoreEntryForm({
   };
 
   return (
-    <form className="panel add-form" onSubmit={addStats}>
-      <h3>Enter one player's match line</h3>
-      <label>
-        Gameweek
-        <select required value={gameweekId} onChange={(e) => setGameweekId(e.target.value)}>
-          {gameweeks.map((week) => (
-            <option key={String(week.id)} value={String(week.id)}>
-              {asText(week.name)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Player
-        <select required value={playerId} onChange={(e) => setPlayerId(e.target.value)}>
-          {players.map((player) => (
-            <option key={String(player.id)} value={String(player.id)}>
-              {asText(player.name)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Match number
-        <input
-          type="number"
-          min="1"
-          value={matchNumber}
-          onChange={(e) => setMatchNumber(e.target.value)}
-        />
-      </label>
-      <div className="field-grid">
-        {Object.entries(values).map(([key, value]) => (
-          <label key={key}>
-            {key.replaceAll("_", " ")}
-            <input
-              type="number"
-              min="0"
-              step={key === "overs_bowled" ? "0.1" : "1"}
-              value={value}
-              onChange={(e) =>
-                setValues((current) => ({ ...current, [key]: e.target.value }) as MatchStatValues)
-              }
-            />
-          </label>
-        ))}
+    <form className="panel" onSubmit={addStats}>
+      <div className="panel-head">
+        <div>
+          <p className="eyebrow">Match scoring</p>
+          <h3>Enter player match line</h3>
+        </div>
       </div>
-      <div className="toggle-grid">
-        {Object.entries(flags).map(([key, value]) => (
-          <label className="toggle-row" key={key}>
-            <span>{key.replaceAll("_", " ")}</span>
-            <input
-              type="checkbox"
-              checked={value}
-              onChange={(e) =>
-                setFlags((current) => ({ ...current, [key]: e.target.checked }) as MatchFlags)
-              }
-            />
-          </label>
-        ))}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-6">
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+          Gameweek
+          <select required value={gameweekId} onChange={(e) => setGameweekId(e.target.value)}>
+            {gameweeks.map((week) => (
+              <option key={String(week.id)} value={String(week.id)}>
+                {asText(week.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+          Player
+          <select required value={playerId} onChange={(e) => setPlayerId(e.target.value)}>
+            {players.map((player) => (
+              <option key={String(player.id)} value={String(player.id)}>
+                {asText(player.name)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+          Match number
+          <input
+            type="number"
+            min="1"
+            value={matchNumber}
+            onChange={(e) => setMatchNumber(e.target.value)}
+          />
+        </label>
       </div>
-      <button className="primary" disabled={saving || !profileId || !gameweekId || !playerId}>
-        {saving ? "Saving…" : "Save match facts"}
-      </button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+        <div className="lg:col-span-8">
+          <p className="eyebrow mb-2.5">Performance statistics</p>
+          <div className="field-grid">
+            {Object.entries(values).map(([key, value]) => (
+              <label key={key}>
+                {key.replaceAll("_", " ")}
+                <input
+                  type="number"
+                  min="0"
+                  step={key === "overs_bowled" ? "0.1" : "1"}
+                  value={value}
+                  onChange={(e) =>
+                    setValues((current) => ({ ...current, [key]: e.target.value }) as MatchStatValues)
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-span-4">
+          <p className="eyebrow mb-2.5">Match flags & outcomes</p>
+          <div className="flex flex-col gap-2.5">
+            {Object.entries(flags).map(([key, value]) => (
+              <label className="toggle-row" key={key}>
+                <span>{key.replaceAll("_", " ")}</span>
+                <input
+                  type="checkbox"
+                  checked={value}
+                  onChange={(e) =>
+                    setFlags((current) => ({ ...current, [key]: e.target.checked }) as MatchFlags)
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end pt-3 border-t border-border">
+        <button className="primary" disabled={saving || !profileId || !gameweekId || !playerId}>
+          {saving ? "Saving…" : "Save match facts"}
+        </button>
+      </div>
     </form>
   );
 }
