@@ -19,13 +19,13 @@ export function TeamsPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="SQUAD MANAGEMENT"
+        eyebrow="Squad management"
         title="Fantasy teams"
         description="Review league rosters, budgets, owners, and franchise assignments."
         actions={
           isAdmin && (
-            <button className="primary" onClick={() => setAdding((value) => !value)}>
-              <Plus size={14} /> Add team
+            <button type="button" className="primary" onClick={() => setAdding((value) => !value)}>
+              <Plus size={14} strokeWidth={1.75} /> Add team
             </button>
           )
         }

@@ -51,6 +51,10 @@ export function AddPlayerForm({
 
   return (
     <form className="panel add-form" onSubmit={add}>
+      <div className="form-head">
+        <h3>Add player to pool</h3>
+        <p className="muted">Define role, franchise, tier weight, and auction base price.</p>
+      </div>
       <label>
         Player name
         <input
@@ -113,8 +117,12 @@ export function AddPlayerForm({
           onChange={(e) => setForm({ ...form, base_price: e.target.value })}
         />
       </label>
-      <div className="flex items-center gap-2.5">
-        <button className="primary" disabled={saving || franchiseLoading || franchises.length === 0}>
+      <div className="add-form-actions">
+        <button
+          type="submit"
+          className="primary"
+          disabled={saving || franchiseLoading || franchises.length === 0}
+        >
           {saving ? "Adding…" : "Save player"}
         </button>
         <button type="button" className="secondary" onClick={onClose}>

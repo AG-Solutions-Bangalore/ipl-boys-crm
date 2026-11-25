@@ -29,7 +29,7 @@ export function ApprovalsPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="ACCESS CONTROL"
+        eyebrow="Access control"
         title="Account approvals"
         description="New manager accounts remain pending until an administrator approves them."
       />
@@ -38,7 +38,7 @@ export function ApprovalsPage() {
           <h3>
             Waiting for approval <span className="count-pill">{rows.length}</span>
           </h3>
-          <span className="mini-tag">{error || "APPROVAL REQUIRED"}</span>
+          <span className="mini-tag">{error || "Approval required"}</span>
         </div>
         <DataTable
           rows={rows}
@@ -51,20 +51,24 @@ export function ApprovalsPage() {
           actions={(row) => (
             <div className="row-actions">
               <button
+                type="button"
                 className="icon-button approve"
                 disabled={working === row.id}
-                title="Approve"
+                title="Approve account"
+                aria-label={`Approve ${String(row.display_name || row.email || "manager")}`}
                 onClick={() => decide(row, true)}
               >
-                <Check size={16} />
+                <Check size={16} strokeWidth={1.75} />
               </button>
               <button
+                type="button"
                 className="icon-button deny"
                 disabled={working === row.id}
-                title="Deny"
+                title="Deny account"
+                aria-label={`Deny ${String(row.display_name || row.email || "manager")}`}
                 onClick={() => decide(row, false)}
               >
-                <Ban size={16} />
+                <Ban size={16} strokeWidth={1.75} />
               </button>
             </div>
           )}

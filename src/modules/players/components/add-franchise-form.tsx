@@ -41,7 +41,10 @@ export function AddFranchiseForm({ onClose }: { onClose: () => void }) {
 
   return (
     <form className="panel add-form" onSubmit={addFranchise}>
-      <h3>New IPL franchise</h3>
+      <div className="form-head">
+        <h3>New IPL franchise</h3>
+        <p className="muted">Add a franchise to the auction catalog with its badge color.</p>
+      </div>
       <label>
         Short ID
         <input
@@ -55,6 +58,7 @@ export function AddFranchiseForm({ onClose }: { onClose: () => void }) {
         Team name
         <input
           required
+          placeholder="Chennai Super Kings"
           value={franchise.name}
           onChange={(e) => setFranchise({ ...franchise, name: e.target.value })}
         />
@@ -64,20 +68,21 @@ export function AddFranchiseForm({ onClose }: { onClose: () => void }) {
         <input
           required
           maxLength={20}
+          placeholder="CSK"
           value={franchise.short}
           onChange={(e) => setFranchise({ ...franchise, short: e.target.value })}
         />
       </label>
       <label>
-        Color
+        Franchise color
         <input
           type="color"
           value={franchise.color}
           onChange={(e) => setFranchise({ ...franchise, color: e.target.value })}
         />
       </label>
-      <div className="flex items-center gap-2.5">
-        <button className="primary" disabled={saving}>
+      <div className="add-form-actions">
+        <button type="submit" className="primary" disabled={saving}>
           {saving ? "Adding…" : "Save franchise"}
         </button>
         <button type="button" className="secondary" onClick={onClose}>

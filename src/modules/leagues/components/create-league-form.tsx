@@ -69,7 +69,8 @@ export function CreateLeagueForm({
           </CardTitle>
         </div>
         <CardDescription>
-          Configure a new isolated league environment with its own starting purse, roster caps, and scoring rules.
+          Configure a new isolated league environment with its own starting purse, roster caps, and
+          scoring rules.
         </CardDescription>
       </CardHeader>
       <form onSubmit={create}>
@@ -85,7 +86,7 @@ export function CreateLeagueForm({
                 placeholder="e.g. IPL 2026 Premier"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-background/50"
+                className="bg-secondary/60"
               />
             </div>
             <div className="grid gap-2">
@@ -99,7 +100,7 @@ export function CreateLeagueForm({
                 placeholder="5000"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
-                className="bg-background/50 font-mono"
+                className="bg-secondary/60 font-mono"
               />
             </div>
           </div>
@@ -112,21 +113,13 @@ export function CreateLeagueForm({
               placeholder="e.g. 10-team private auction league with tier weights"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="bg-background/50"
+              className="bg-secondary/60"
             />
           </div>
         </CardContent>
         <CardFooter className="flex justify-end border-t border-border/50 pt-4">
-          <Button
-            type="submit"
-            disabled={saving || !name.trim()}
-            className="gap-2"
-          >
-            {saving ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Plus className="size-4" />
-            )}
+          <Button type="submit" disabled={saving || !name.trim()} className="gap-2">
+            {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
             {saving ? "Creating…" : "Create league"}
           </Button>
         </CardFooter>

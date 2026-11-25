@@ -50,7 +50,7 @@ export function TradesPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="TRANSFERS & LOANS"
+        eyebrow="Transfers & loans"
         title="Trade review"
         description="Accept valid pending exchanges or cancel an offer. Ownership, budget, roster, and weight checks are applied on the server."
       />
@@ -71,6 +71,7 @@ export function TradesPage() {
             asText(row.status) === "pending" ? (
               <div className="row-actions">
                 <button
+                  type="button"
                   className="primary small"
                   disabled={busy === row.id}
                   onClick={() => execute(row as Trade)}
@@ -78,6 +79,7 @@ export function TradesPage() {
                   {busy === row.id ? "Working…" : "Accept"}
                 </button>
                 <button
+                  type="button"
                   className="text-button"
                   disabled={busy === row.id}
                   onClick={() => cancel(row as Trade)}

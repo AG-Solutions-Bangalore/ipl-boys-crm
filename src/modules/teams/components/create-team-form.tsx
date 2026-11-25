@@ -68,6 +68,10 @@ export function CreateTeamForm({
 
   return (
     <form className="panel add-form" onSubmit={add}>
+      <div className="form-head">
+        <h3>Create fantasy team</h3>
+        <p className="muted">Register a new franchise slot in the active league profile.</p>
+      </div>
       <label>
         Team name
         <input
@@ -103,9 +107,14 @@ export function CreateTeamForm({
           ))}
         </select>
       </label>
-      <button className="primary" disabled={saving || !profileId}>
-        {saving ? "Creating…" : "Create fantasy team"}
-      </button>
+      <div className="add-form-actions">
+        <button type="submit" className="primary" disabled={saving || !profileId}>
+          {saving ? "Creating…" : "Create fantasy team"}
+        </button>
+        <button type="button" className="secondary" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }

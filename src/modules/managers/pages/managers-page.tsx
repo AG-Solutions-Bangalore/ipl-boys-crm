@@ -95,11 +95,14 @@ export function ManagersPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="ACCOUNT ACCESS"
+        eyebrow="Account access"
         title="Manager assignments"
         description="Approve manager signups, then connect each approved account to one fantasy team in the selected league."
       />
       <form className="panel add-form" onSubmit={save}>
+        <div className="form-head">
+          <h3>Assign manager to team</h3>
+        </div>
         <label>
           Approved manager
           <select required value={userId} onChange={(e) => setUserId(e.target.value)}>
@@ -123,6 +126,7 @@ export function ManagersPage() {
           </select>
         </label>
         <button
+          type="submit"
           className="primary"
           disabled={!userId || !teamId || !!busy || users.loading || teams.loading}
         >
@@ -130,8 +134,11 @@ export function ManagersPage() {
         </button>
       </form>
       <form className="panel add-form" onSubmit={reset}>
+        <div className="form-head">
+          <h3>Reset manager password</h3>
+        </div>
         <label>
-          Reset an existing account password
+          Approved account
           <select required value={userId} onChange={(e) => setUserId(e.target.value)}>
             <option value="">Choose an approved manager</option>
             {approvedUsers.map((user) => (
@@ -151,14 +158,18 @@ export function ManagersPage() {
             onChange={(e) => setNewPassword(e.target.value)}
           />
         </label>
-        <button className="secondary" disabled={!userId || newPassword.length < 8 || !!busy}>
+        <button
+          type="submit"
+          className="secondary"
+          disabled={!userId || newPassword.length < 8 || !!busy}
+        >
           Reset password
         </button>
       </form>
       <div className="panel">
         <div className="panel-head">
           <h3>Current assignments</h3>
-          <span className="mini-tag">ONE MANAGER PER LEAGUE PROFILE</span>
+          <span className="mini-tag">One manager per league</span>
         </div>
         <DataTable
           rows={assignments.rows.map((row) => ({

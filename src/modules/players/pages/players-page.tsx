@@ -17,17 +17,25 @@ export function PlayersPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="AUCTION POOL"
+        eyebrow="Auction pool"
         title="Player pool"
         description="Maintain the IPL franchise catalog and the player catalog used by auctions and scoring."
         actions={
           isAppAdmin && (
             <>
-              <button className="secondary" onClick={() => setAddingFranchise((value) => !value)}>
-                <Plus size={14} /> Add franchise
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setAddingFranchise((value) => !value)}
+              >
+                <Plus size={14} strokeWidth={1.75} /> Add franchise
               </button>
-              <button className="primary" onClick={() => setAdding((value) => !value)}>
-                <Plus size={14} /> Add player
+              <button
+                type="button"
+                className="primary"
+                onClick={() => setAdding((value) => !value)}
+              >
+                <Plus size={14} strokeWidth={1.75} /> Add player
               </button>
             </>
           )
@@ -57,6 +65,11 @@ export function PlayersPage() {
         />
       </div>
       <div className="panel">
+        <div className="panel-head">
+          <h3>
+            Player catalog <span className="count-pill">{players.rows.length}</span>
+          </h3>
+        </div>
         <DataTable
           rows={players.rows}
           loading={players.loading}

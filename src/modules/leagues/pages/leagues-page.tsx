@@ -14,7 +14,7 @@ export function LeaguesPage() {
         <LeagueSettingsForm profile={selectedProfile} />
       ) : (
         <PanelTitle
-          eyebrow="PROFILE CONFIGURATION"
+          eyebrow="Profile configuration"
           title="League profiles"
           description="Create a league profile before adding its teams, managers, and season rules."
         />

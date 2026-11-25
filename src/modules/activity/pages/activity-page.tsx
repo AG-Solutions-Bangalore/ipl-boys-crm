@@ -10,7 +10,7 @@ export function ActivityPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="AUDIT TRAIL"
+        eyebrow="Audit trail"
         title="League activity"
         description="Recent changes recorded by the league API."
       />

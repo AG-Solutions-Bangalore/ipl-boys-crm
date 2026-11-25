@@ -23,7 +23,11 @@ import type { Row } from "@/shared/types/common.types";
 
 const AVAILABLE_CHIPS = [
   { id: "TC", label: "Triple Captain (TC)", description: "3x points for selected player" },
-  { id: "MMC", label: "Mega Match Captain (MMC)", description: "Double points on marquee fixtures" },
+  {
+    id: "MMC",
+    label: "Mega Match Captain (MMC)",
+    description: "Double points on marquee fixtures",
+  },
   { id: "WC", label: "Wildcard (WC)", description: "Unlimited free transfers for a gameweek" },
   { id: "FH", label: "Free Hit (FH)", description: "Temporary squad overhaul for one week" },
   { id: "BB", label: "Bench Boost (BB)", description: "Points count from reserve players" },
@@ -129,7 +133,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
                 min="0"
                 value={form.starting_budget}
                 onChange={(e) => set("starting_budget", e.target.value)}
-                className="bg-background/50 font-mono"
+                className="bg-secondary/60 font-mono"
               />
             </div>
             <div className="grid gap-2">
@@ -143,7 +147,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
                 max="18"
                 value={form.roster_min}
                 onChange={(e) => set("roster_min", e.target.value)}
-                className="bg-background/50 font-mono"
+                className="bg-secondary/60 font-mono"
               />
             </div>
             <div className="grid gap-2">
@@ -157,7 +161,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
                 max="18"
                 value={form.roster_max}
                 onChange={(e) => set("roster_max", e.target.value)}
-                className="bg-background/50 font-mono"
+                className="bg-secondary/60 font-mono"
               />
             </div>
             <div className="grid gap-2">
@@ -171,7 +175,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
                 step="0.1"
                 value={form.weight_trade_tolerance}
                 onChange={(e) => set("weight_trade_tolerance", e.target.value)}
-                className="bg-background/50 font-mono"
+                className="bg-secondary/60 font-mono"
               />
             </div>
           </CardContent>
@@ -185,11 +189,12 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
               <CardTitle className="text-base">Scoring & trade logic</CardTitle>
             </div>
             <CardDescription>
-              Toggle behavioral constraints that affect gameweek leaderboard point calculations and trade validations.
+              Toggle behavioral constraints that affect gameweek leaderboard point calculations and
+              trade validations.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex items-center justify-between rounded-lg border border-border/50 bg-background/30 p-4">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-4">
               <div className="space-y-0.5 pr-4">
                 <Label htmlFor="weight-system" className="text-sm font-medium">
                   Weight system
@@ -205,7 +210,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
               />
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-border/50 bg-background/30 p-4">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-4">
               <div className="space-y-0.5 pr-4">
                 <Label htmlFor="allow-negatives" className="text-sm font-medium">
                   Allow negative points
@@ -247,16 +252,13 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
                       key={chip.id}
                       type="button"
                       onClick={() => toggleChip(chip.id)}
-                      className={`group flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${
+                      className={`group flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-[background-color,border-color,color] duration-150 ${
                         active
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border/50 bg-background/30 text-muted-foreground hover:border-border hover:text-foreground"
+                          ? "border-[var(--green-border)] bg-[var(--green-bg)] text-[var(--green)]"
+                          : "border-border bg-secondary/60 text-muted-foreground hover:border-input hover:bg-secondary hover:text-foreground"
                       }`}
                     >
-                      <Badge
-                        variant={active ? "default" : "outline"}
-                        className="font-mono text-xs"
-                      >
+                      <Badge variant={active ? "default" : "outline"} className="font-mono text-xs">
                         {chip.id}
                       </Badge>
                       <div>
@@ -281,7 +283,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
                   rows={2}
                   value={form.enabled_chips}
                   onChange={(e) => set("enabled_chips", e.target.value)}
-                  className="bg-background/50 font-mono text-xs"
+                  className="bg-secondary/60 font-mono text-xs"
                 />
               </div>
 
@@ -294,18 +296,14 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
                   rows={2}
                   value={form.release_cycles}
                   onChange={(e) => set("release_cycles", e.target.value)}
-                  className="bg-background/50 font-mono text-xs"
+                  className="bg-secondary/60 font-mono text-xs"
                 />
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end border-t border-border/50 pt-4">
             <Button type="submit" disabled={saving} className="gap-2">
-              {saving ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Check className="size-4" />
-              )}
+              {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
               {saving ? "Saving…" : "Save profile settings"}
             </Button>
           </CardFooter>

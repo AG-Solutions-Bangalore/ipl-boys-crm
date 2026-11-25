@@ -17,7 +17,7 @@ import type { Player } from "@/modules/players/types/player.types";
 import type { FantasyTeam } from "@/modules/teams/types/team.types";
 
 const selectClass =
-  "h-9 w-full rounded-lg border border-input bg-background/50 px-3 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
+  "h-9 w-full rounded-lg border border-input bg-secondary px-3 text-sm text-foreground outline-none transition-[border-color,box-shadow] duration-150 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function AuctionForm({
   teams,
@@ -81,7 +81,10 @@ export function AuctionForm({
               </Label>
               {selectedTeam && (
                 <span className="font-mono text-xs text-muted-foreground">
-                  Purse: <span className="font-medium text-foreground">₹{asText(selectedTeam.budget)} Cr</span>
+                  Purse:{" "}
+                  <span className="font-medium text-foreground">
+                    ₹{asText(selectedTeam.budget)} Cr
+                  </span>
                 </span>
               )}
             </div>
@@ -93,7 +96,11 @@ export function AuctionForm({
               className={selectClass}
             >
               {teams.map((team) => (
-                <option value={String(team.id)} key={String(team.id)} className="bg-card text-foreground">
+                <option
+                  value={String(team.id)}
+                  key={String(team.id)}
+                  className="bg-card text-foreground"
+                >
                   {asText(team.name)} — Budget ₹{asText(team.budget)} Cr
                 </option>
               ))}
@@ -111,13 +118,13 @@ export function AuctionForm({
               </span>
             </div>
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="search-player"
                 placeholder="Type to filter player name or franchise…"
                 value={filter}
                 onChange={(e) => onFilterChange(e.target.value)}
-                className="bg-background/50 pl-8"
+                className="bg-secondary pl-8"
               />
             </div>
           </div>
@@ -145,8 +152,13 @@ export function AuctionForm({
               className={selectClass}
             >
               {unassigned.map((player) => (
-                <option value={String(player.id)} key={String(player.id)} className="bg-card text-foreground">
-                  {asText(player.name)} ({asText(player.role) || "Player"}) · Base ₹{asText(player.base_price || 0)} Cr
+                <option
+                  value={String(player.id)}
+                  key={String(player.id)}
+                  className="bg-card text-foreground"
+                >
+                  {asText(player.name)} ({asText(player.role) || "Player"}) · Base ₹
+                  {asText(player.base_price || 0)} Cr
                 </option>
               ))}
             </select>
@@ -177,7 +189,7 @@ export function AuctionForm({
               value={price}
               onChange={(e) => onPriceChange(e.target.value)}
               placeholder="0.00"
-              className="bg-background/50 font-mono text-base font-medium"
+              className="bg-secondary font-mono text-base font-medium"
             />
             {isBelowBase && (
               <p className="text-[11px] text-destructive">
@@ -191,7 +203,8 @@ export function AuctionForm({
           <div className="text-xs text-muted-foreground">
             {selectedPlayer && selectedTeam ? (
               <span>
-                Selling to <b className="font-medium text-foreground">{asText(selectedTeam.name)}</b>
+                Selling to{" "}
+                <b className="font-medium text-foreground">{asText(selectedTeam.name)}</b>
               </span>
             ) : (
               <span>Select team and player to proceed</span>
@@ -202,11 +215,7 @@ export function AuctionForm({
             disabled={busy || !selectedPlayer || !selectedTeam || isBelowBase}
             className="gap-2"
           >
-            {busy ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Gavel className="size-4" />
-            )}
+            {busy ? <Loader2 className="size-4 animate-spin" /> : <Gavel className="size-4" />}
             {busy ? "Recording sale…" : "Confirm sale"}
           </Button>
         </CardFooter>

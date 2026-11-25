@@ -1,4 +1,5 @@
-import type { Users } from "lucide-react";
+import { cn } from "cn";
+import { ArrowUpRight, type Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function MetricCard({
@@ -7,30 +8,57 @@ export function MetricCard({
   icon: Icon,
   caption,
   loading = false,
+  attention = false,
+  onClick,
 }: {
   label: string;
   value: string | number;
   icon: typeof Users;
   caption: string;
   loading?: boolean;
+  attention?: boolean;
+  onClick?: () => void;
 }) {
-  return (
-    <article className="metric-card">
+  const className = cn("metric-card", attention && "has-attention");
+  const content = (
+    <>
       <div className="metric-top">
         <span>{label}</span>
-        <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
+        <span className="metric-icon" aria-hidden="true">
+          <Icon size={15} strokeWidth={1.75} />
+        </span>
       </div>
       {loading ? (
         <>
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="mt-1 h-4 w-1/3" />
+          <Skeleton className="my-2.5 h-8 w-24" />
+          <Skeleton className="h-4 w-2/3" />
         </>
       ) : (
         <>
           <strong>{value}</strong>
-          <small>{caption}</small>
+          <div className="metric-foot">
+            <small>{caption}</small>
+            {onClick && (
+              <ArrowUpRight
+                size={14}
+                strokeWidth={1.75}
+                className="metric-link-hint"
+                aria-hidden="true"
+              />
+            )}
+          </div>
         </>
       )}
-    </article>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button type="button" className={className} onClick={onClick}>
+        {content}
+      </button>
+    );
+  }
+
+  return <article className={className}>{content}</article>;
 }

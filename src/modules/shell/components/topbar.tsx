@@ -20,8 +20,7 @@ export function Topbar() {
     <header className="topbar">
       <div>
         <div className="crumb">
-          Control room <span>/</span>
-          {activeItem?.label ?? "Overview"}
+          Control room <span>/</span> {activeItem?.label ?? "Overview"}
         </div>
         <h1>{activeItem?.label ?? "Overview"}</h1>
       </div>
@@ -36,15 +35,23 @@ export function Topbar() {
                 </option>
               ))}
             </select>
-            <ChevronDown size={14} strokeWidth={1.5} aria-hidden="true" />
+            <ChevronDown size={14} strokeWidth={1.75} aria-hidden="true" />
           </label>
         )}
-        <button className="icon-button" title="Refresh data" aria-label="Refresh data" onClick={refresh}>
-          <RefreshCw size={15} strokeWidth={1.5} aria-hidden="true" />
+        <button
+          type="button"
+          className="icon-button"
+          title="Refresh data"
+          aria-label="Refresh data"
+          onClick={refresh}
+        >
+          <RefreshCw size={15} strokeWidth={1.75} aria-hidden="true" />
         </button>
         <ThemeToggle />
         <div className="user-chip">
-          <span className="avatar" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>
+          <span className="avatar" aria-hidden="true">
+            {displayName.slice(0, 1).toUpperCase() || "A"}
+          </span>
           <span>
             {displayName}
             <small>{roleLabel}</small>

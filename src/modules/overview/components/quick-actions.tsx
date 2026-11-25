@@ -1,8 +1,47 @@
-import { ArrowUpRight, BadgeCheck, Clock3, Shield, Swords } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Clock3, Gavel, Shield, Swords } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSession } from "@/modules/auth/hooks/use-session";
 
 export function QuickActions() {
   const navigate = useNavigate();
+  const { isAppAdmin } = useSession();
+
+  const actions = [
+    ...(isAppAdmin
+      ? [
+          {
+            path: "/approvals",
+            icon: BadgeCheck,
+            title: "Review signups",
+            subtitle: "Approve or deny pending manager accounts",
+          },
+        ]
+      : []),
+    {
+      path: "/auction",
+      icon: Gavel,
+      title: "Open auction desk",
+      subtitle: "Assign unsold players and verify team purses",
+    },
+    {
+      path: "/gameweeks",
+      icon: Clock3,
+      title: "Manage gameweeks",
+      subtitle: "Set deadlines, lock lineups, and recalculate points",
+    },
+    {
+      path: "/trades",
+      icon: Swords,
+      title: "Review trades",
+      subtitle: "Process pending player transfers and loans",
+    },
+    {
+      path: "/leagues",
+      icon: Shield,
+      title: "League rules",
+      subtitle: "Configure budgets, chips, and roster boundaries",
+    },
+  ];
 
   return (
     <section className="panel">
@@ -13,38 +52,18 @@ export function QuickActions() {
         </div>
       </div>
       <div className="quick-actions">
-        <button onClick={() => navigate("/approvals")}>
-          <BadgeCheck size={16} strokeWidth={1.5} aria-hidden="true" />
-          <span>
-            <b>Review signups</b>
-            <small>Approve or deny access</small>
-          </span>
-          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
-        </button>
-        <button onClick={() => navigate("/gameweeks")}>
-          <Clock3 size={16} strokeWidth={1.5} aria-hidden="true" />
-          <span>
-            <b>Manage gameweeks</b>
-            <small>Set deadlines and recalculate</small>
-          </span>
-          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
-        </button>
-        <button onClick={() => navigate("/trades")}>
-          <Swords size={16} strokeWidth={1.5} aria-hidden="true" />
-          <span>
-            <b>Review trades</b>
-            <small>Process pending exchanges</small>
-          </span>
-          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
-        </button>
-        <button onClick={() => navigate("/leagues")}>
-          <Shield size={16} strokeWidth={1.5} aria-hidden="true" />
-          <span>
-            <b>League rules</b>
-            <small>Budgets, chips, roster limits</small>
-          </span>
-          <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
-        </button>
+        {actions.map(({ path, icon: Icon, title, subtitle }) => (
+          <button type="button" key={path} onClick={() => navigate(path)}>
+            <span className="quick-action-icon" aria-hidden="true">
+              <Icon size={16} strokeWidth={1.75} />
+            </span>
+            <span>
+              <b>{title}</b>
+              <small>{subtitle}</small>
+            </span>
+            <ArrowUpRight size={15} strokeWidth={1.75} aria-hidden="true" />
+          </button>
+        ))}
       </div>
     </section>
   );

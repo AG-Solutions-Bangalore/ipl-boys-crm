@@ -73,13 +73,13 @@ export function GameweeksPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="SCHEDULE & DEADLINES"
+        eyebrow="Schedule & deadlines"
         title="Gameweeks"
         description="Set the active week and deadline. Deadline locks snapshot every team's submitted lineup."
         actions={
           isAppAdmin && (
-            <button className="primary" onClick={() => setAdding((value) => !value)}>
-              <Plus size={14} /> Add gameweek
+            <button type="button" className="primary" onClick={() => setAdding((value) => !value)}>
+              <Plus size={14} strokeWidth={1.75} /> Add gameweek
             </button>
           )
         }
@@ -100,6 +100,7 @@ export function GameweeksPage() {
             <div className="row-actions">
               {isAppAdmin && (
                 <button
+                  type="button"
                   className="text-button"
                   disabled={busy === row.id || isTrue(row.is_locked)}
                   onClick={() => setActive(row as Gameweek)}
@@ -108,6 +109,7 @@ export function GameweeksPage() {
                 </button>
               )}
               <button
+                type="button"
                 className="text-button"
                 disabled={busy === `score-${row.id}`}
                 onClick={() => recalc(row as Gameweek)}
@@ -116,6 +118,7 @@ export function GameweeksPage() {
               </button>
               {isAppAdmin && (
                 <button
+                  type="button"
                   className="text-button"
                   disabled={busy === row.id || !isTrue(row.is_locked)}
                   onClick={() =>

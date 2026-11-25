@@ -25,7 +25,7 @@ export function ScoresPage() {
   return (
     <>
       <PanelTitle
-        eyebrow="OFFICIAL RESULTS"
+        eyebrow="Official results"
         title="Scores & match data"
         description="Enter scorecard facts for the selected league. Points and ranks are calculated on the server."
       />

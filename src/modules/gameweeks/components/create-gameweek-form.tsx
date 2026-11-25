@@ -52,6 +52,10 @@ export function CreateGameweekForm({
 
   return (
     <form className="panel add-form" onSubmit={add}>
+      <div className="form-head">
+        <h3>Create gameweek</h3>
+        <p className="muted">Define the week label, submission deadline, and fixture count.</p>
+      </div>
       <label>
         Week name
         <input
@@ -78,9 +82,14 @@ export function CreateGameweekForm({
           onChange={(e) => setForm({ ...form, game_count: e.target.value })}
         />
       </label>
-      <button className="primary" disabled={saving}>
-        {saving ? "Creating…" : "Create week"}
-      </button>
+      <div className="add-form-actions">
+        <button type="submit" className="primary" disabled={saving}>
+          {saving ? "Creating…" : "Create week"}
+        </button>
+        <button type="button" className="secondary" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }

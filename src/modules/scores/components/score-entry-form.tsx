@@ -23,6 +23,23 @@ const defaultValues: MatchStatValues = {
   hat_tricks: "0",
 };
 
+const STAT_LABELS: Record<keyof MatchStatValues, string> = {
+  runs: "Runs scored",
+  balls: "Balls faced",
+  wickets: "Wickets",
+  overs_bowled: "Overs bowled",
+  runs_conceded: "Runs conceded",
+  maidens: "Maiden overs",
+  catches: "Catches",
+  stumpings: "Stumpings",
+  run_outs: "Run outs",
+  direct_run_outs: "Direct run outs",
+  split_run_outs: "Split run outs",
+  fours: "Fours",
+  sixes: "Sixes",
+  hat_tricks: "Hat-tricks",
+};
+
 const defaultFlags: MatchFlags = {
   is_out: true,
   is_dnp: false,
@@ -30,6 +47,15 @@ const defaultFlags: MatchFlags = {
   motm: false,
   six_sixes: false,
   super_over: false,
+};
+
+const FLAG_LABELS: Record<keyof MatchFlags, string> = {
+  is_out: "Dismissed (out)",
+  is_dnp: "Did not play (DNP)",
+  team_win: "Winning side",
+  motm: "Player of the match",
+  six_sixes: "Six sixes in an over",
+  super_over: "Super over played",
 };
 
 export function ScoreEntryForm({
@@ -92,10 +118,15 @@ export function ScoreEntryForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-6">
-        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+      <div className="mb-6 grid grid-cols-1 gap-3.5 md:grid-cols-3">
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
           Gameweek
-          <select required value={gameweekId} onChange={(e) => setGameweekId(e.target.value)}>
+          <select
+            required
+            value={gameweekId}
+            onChange={(e) => setGameweekId(e.target.value)}
+            className="h-9 rounded-lg border border-input bg-[var(--surface2)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-ring"
+          >
             {gameweeks.map((week) => (
               <option key={String(week.id)} value={String(week.id)}>
                 {asText(week.name)}
@@ -103,9 +134,14 @@ export function ScoreEntryForm({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
           Player
-          <select required value={playerId} onChange={(e) => setPlayerId(e.target.value)}>
+          <select
+            required
+            value={playerId}
+            onChange={(e) => setPlayerId(e.target.value)}
+            className="h-9 rounded-lg border border-input bg-[var(--surface2)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-ring"
+          >
             {players.map((player) => (
               <option key={String(player.id)} value={String(player.id)}>
                 {asText(player.name)}
@@ -113,32 +149,31 @@ export function ScoreEntryForm({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
           Match number
           <input
             type="number"
             min="1"
             value={matchNumber}
             onChange={(e) => setMatchNumber(e.target.value)}
+            className="h-9 rounded-lg border border-input bg-[var(--surface2)] px-3 font-mono text-sm text-[var(--text-primary)] outline-none focus:border-ring"
           />
         </label>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
           <p className="eyebrow mb-2.5">Performance statistics</p>
           <div className="field-grid">
-            {Object.entries(values).map(([key, value]) => (
+            {(Object.keys(values) as (keyof MatchStatValues)[]).map((key) => (
               <label key={key}>
-                {key.replaceAll("_", " ")}
+                {STAT_LABELS[key]}
                 <input
                   type="number"
                   min="0"
                   step={key === "overs_bowled" ? "0.1" : "1"}
-                  value={value}
-                  onChange={(e) =>
-                    setValues((current) => ({ ...current, [key]: e.target.value }) as MatchStatValues)
-                  }
+                  value={values[key]}
+                  onChange={(e) => setValues((current) => ({ ...current, [key]: e.target.value }))}
                 />
               </label>
             ))}
@@ -147,16 +182,14 @@ export function ScoreEntryForm({
 
         <div className="lg:col-span-4">
           <p className="eyebrow mb-2.5">Match flags & outcomes</p>
-          <div className="flex flex-col gap-2.5">
-            {Object.entries(flags).map(([key, value]) => (
+          <div className="flex flex-col gap-2">
+            {(Object.keys(flags) as (keyof MatchFlags)[]).map((key) => (
               <label className="toggle-row" key={key}>
-                <span>{key.replaceAll("_", " ")}</span>
+                <span>{FLAG_LABELS[key]}</span>
                 <input
                   type="checkbox"
-                  checked={value}
-                  onChange={(e) =>
-                    setFlags((current) => ({ ...current, [key]: e.target.checked }) as MatchFlags)
-                  }
+                  checked={flags[key]}
+                  onChange={(e) => setFlags((current) => ({ ...current, [key]: e.target.checked }))}
                 />
               </label>
             ))}
@@ -164,8 +197,12 @@ export function ScoreEntryForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-end pt-3 border-t border-border">
-        <button className="primary" disabled={saving || !profileId || !gameweekId || !playerId}>
+      <div className="flex items-center justify-end border-t border-border pt-4">
+        <button
+          type="submit"
+          className="primary"
+          disabled={saving || !profileId || !gameweekId || !playerId}
+        >
           {saving ? "Saving…" : "Save match facts"}
         </button>
       </div>

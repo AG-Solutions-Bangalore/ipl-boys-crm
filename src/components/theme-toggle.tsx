@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -19,23 +19,21 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <div className="icon-button" aria-hidden="true">
-        <Moon size={15} strokeWidth={1.5} />
+        <Moon size={16} strokeWidth={1.75} />
       </div>
     );
   }
 
+  const isLight = resolvedTheme === "light";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          className="icon-button"
-          title="Toggle color theme"
-          aria-label="Toggle color theme"
-        >
-          {theme === "light" ? (
-            <Sun size={15} strokeWidth={1.5} className="text-amber-500" />
+        <button className="icon-button" title="Appearance theme" aria-label="Appearance theme">
+          {isLight ? (
+            <Sun size={16} strokeWidth={1.75} aria-hidden="true" />
           ) : (
-            <Moon size={15} strokeWidth={1.5} className="text-amber-400" />
+            <Moon size={16} strokeWidth={1.75} aria-hidden="true" />
           )}
         </button>
       </DropdownMenuTrigger>
@@ -45,7 +43,7 @@ export function ThemeToggle() {
           className="flex items-center justify-between gap-2 text-xs"
         >
           <span className="flex items-center gap-2">
-            <Moon size={14} strokeWidth={1.5} className="text-amber-400" />
+            <Moon size={14} strokeWidth={1.75} className="text-muted-foreground" />
             Dark
           </span>
           {theme === "dark" && <Check size={14} className="text-primary" />}
@@ -56,7 +54,7 @@ export function ThemeToggle() {
           className="flex items-center justify-between gap-2 text-xs"
         >
           <span className="flex items-center gap-2">
-            <Sun size={14} strokeWidth={1.5} className="text-amber-500" />
+            <Sun size={14} strokeWidth={1.75} className="text-muted-foreground" />
             Light
           </span>
           {theme === "light" && <Check size={14} className="text-primary" />}
@@ -67,7 +65,7 @@ export function ThemeToggle() {
           className="flex items-center justify-between gap-2 text-xs"
         >
           <span className="flex items-center gap-2">
-            <Laptop size={14} strokeWidth={1.5} className="text-muted-foreground" />
+            <Laptop size={14} strokeWidth={1.75} className="text-muted-foreground" />
             System
           </span>
           {theme === "system" && <Check size={14} className="text-primary" />}

@@ -51,10 +51,12 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
   return (
     <>
       <form className="panel add-form" onSubmit={add}>
-        <h3>Record an admin point adjustment</h3>
-        <p className="muted">
-          Use for documented league adjustments and Straddle outcomes (usually +150 or −150).
-        </p>
+        <div className="form-head">
+          <h3>Record an admin point adjustment</h3>
+          <p className="muted">
+            Use for documented league adjustments and Straddle outcomes (usually +150 or −150).
+          </p>
+        </div>
         <label>
           Fantasy team
           <select required value={teamId} onChange={(e) => setTeamId(e.target.value)}>
@@ -88,9 +90,11 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
           Reason
           <input required value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
-        <button className="primary" disabled={saving || !teamId || !weekId}>
-          {saving ? "Saving…" : "Record adjustment"}
-        </button>
+        <div className="add-form-actions">
+          <button type="submit" className="primary" disabled={saving || !teamId || !weekId}>
+            {saving ? "Saving…" : "Record adjustment"}
+          </button>
+        </div>
       </form>
       <div className="panel">
         <div className="panel-head">

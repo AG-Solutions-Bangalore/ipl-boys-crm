@@ -1,12 +1,6 @@
 import { AlertCircle, CheckCircle2, Shield, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { asText } from "@/lib/format";
 import type { Player } from "@/modules/players/types/player.types";
 import type { FantasyTeam } from "@/modules/teams/types/team.types";
@@ -26,7 +20,7 @@ export function AuctionSummary({
   const isDeficit = Boolean(selectedTeam && remainingBudget < 0);
 
   return (
-    <Card className="border-border/70 bg-card">
+    <Card className="border-border bg-card shadow-[var(--shadow-card)]">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-primary">
@@ -45,8 +39,7 @@ export function AuctionSummary({
       </CardHeader>
 
       <CardContent className="grid gap-4">
-        {/* Spotlight Player Header */}
-        <div className="rounded-lg border border-border/50 bg-background/40 p-3.5">
+        <div className="rounded-lg border border-border bg-secondary/70 p-3.5">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-xs text-muted-foreground">Target asset</p>
@@ -62,30 +55,29 @@ export function AuctionSummary({
           </div>
         </div>
 
-        {/* Breakdown Ledger */}
         <div className="grid gap-2 text-xs">
-          <div className="flex items-center justify-between border-b border-border/40 py-2">
+          <div className="flex items-center justify-between border-b border-border py-2">
             <span className="text-muted-foreground">Purchasing franchise</span>
             <b className="font-medium text-foreground">{asText(selectedTeam?.name) || "—"}</b>
           </div>
 
-          <div className="flex items-center justify-between border-b border-border/40 py-2">
+          <div className="flex items-center justify-between border-b border-border py-2">
             <span className="text-muted-foreground">Current purse balance</span>
-            <b className="font-mono text-foreground">
+            <b className="font-mono text-foreground tabular-nums">
               {selectedTeam ? `₹${asText(selectedTeam.budget)} Cr` : "—"}
             </b>
           </div>
 
-          <div className="flex items-center justify-between border-b border-border/40 py-2">
+          <div className="flex items-center justify-between border-b border-border py-2">
             <span className="text-muted-foreground">Asset base price</span>
-            <b className="font-mono text-foreground">
+            <b className="font-mono text-foreground tabular-nums">
               {selectedPlayer ? `₹${asText(selectedPlayer.base_price || 0)} Cr` : "—"}
             </b>
           </div>
 
-          <div className="flex items-center justify-between border-b border-border/40 py-2">
+          <div className="flex items-center justify-between border-b border-border py-2">
             <span className="text-muted-foreground">Agreed sale price</span>
-            <b className="font-mono text-primary">
+            <b className="font-mono font-semibold text-foreground tabular-nums">
               {price ? `₹${price} Cr` : "—"}
             </b>
           </div>
@@ -93,12 +85,12 @@ export function AuctionSummary({
           <div className="flex items-center justify-between pt-1 text-sm">
             <span className="font-medium text-foreground">Purse after sale</span>
             <b
-              className={`font-mono font-semibold ${
+              className={`font-mono font-semibold tabular-nums ${
                 !selectedTeam
                   ? "text-muted-foreground"
                   : isDeficit
-                    ? "text-destructive"
-                    : "text-emerald-400"
+                    ? "text-[var(--red)]"
+                    : "text-[var(--green)]"
               }`}
             >
               {selectedTeam ? `₹${remainingBudget.toFixed(2)} Cr` : "—"}
@@ -106,13 +98,12 @@ export function AuctionSummary({
           </div>
         </div>
 
-        {/* Status Validation Box */}
         {selectedTeam && (
           <div
             className={`flex items-start gap-2.5 rounded-lg border p-3 text-xs leading-relaxed ${
               isDeficit
-                ? "border-destructive/30 bg-destructive/10 text-destructive"
-                : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                ? "border-[var(--red-border)] bg-[var(--red-bg)] text-[var(--red)]"
+                : "border-[var(--green-border)] bg-[var(--green-bg)] text-[var(--green)]"
             }`}
           >
             {isDeficit ? (
@@ -121,9 +112,7 @@ export function AuctionSummary({
               <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
             )}
             <div>
-              <p className="font-medium">
-                {isDeficit ? "Insufficient funds" : "Purse approved"}
-              </p>
+              <p className="font-semibold">{isDeficit ? "Insufficient funds" : "Purse approved"}</p>
               <p className="opacity-90">
                 {isDeficit
                   ? "Sale price exceeds franchise available budget ceiling."
@@ -133,11 +122,11 @@ export function AuctionSummary({
           </div>
         )}
 
-        {/* Policy Hint */}
-        <div className="flex items-start gap-2 rounded-lg border border-border/30 bg-background/20 p-3 text-[11px] text-muted-foreground">
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">
           <Shield className="mt-0.5 size-3.5 shrink-0 text-primary" />
           <span>
-            IPL franchises count as auction assets and do not consume one of the 15–18 player roster slots.
+            IPL franchises count as auction assets and do not consume one of the 15–18 player roster
+            slots.
           </span>
         </div>
       </CardContent>

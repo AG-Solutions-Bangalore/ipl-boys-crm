@@ -18,7 +18,7 @@ export function PanelTitle({
         <h2>{title}</h2>
         <p className="muted">{description}</p>
       </div>
-      {actions}
+      {actions ? <div className="panel-title-actions">{actions}</div> : null}
     </div>
   );
 }
