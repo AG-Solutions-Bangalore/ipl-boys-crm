@@ -9,5 +9,6 @@ export function useActivity(profileId: string) {
     "league_activity_log",
     { profile_id: profileId, order: "created_at.desc", limit: "200" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }

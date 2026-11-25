@@ -34,15 +34,21 @@ const AVAILABLE_CHIPS = [
 ];
 
 const buildForm = (profile: LeagueProfile): LeagueSettingsForm => ({
-  starting_budget: asText(profile.starting_budget || 5000),
+  starting_budget: asText(profile.starting_budget ?? 5000),
   weight_enabled: isTrue(profile.weight_enabled),
-  weight_trade_tolerance: asText(profile.weight_trade_tolerance || 0),
+  weight_trade_tolerance: asText(profile.weight_trade_tolerance ?? 0),
   allow_negative_points: isTrue(profile.allow_negative_points),
-  roster_min: asText(profile.roster_min || 15),
-  roster_max: asText(profile.roster_max || 18),
-  enabled_chips: asText(profile.enabled_chips || "[]"),
-  release_cycles: asText(profile.release_cycles || "[]"),
+  roster_min: asText(profile.roster_min ?? 15),
+  roster_max: asText(profile.roster_max ?? 18),
+  enabled_chips: asText(profile.enabled_chips ?? "[]"),
+  release_cycles: asText(profile.release_cycles ?? "[]"),
 });
+
+const parseJsonArray = (value: string, fieldName: string) => {
+  const parsed: unknown = JSON.parse(value);
+  if (!Array.isArray(parsed)) throw new Error(`${fieldName} must be a JSON array.`);
+  return parsed;
+};
 
 export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
   const updateLeague = useUpdateLeague();
@@ -52,7 +58,7 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
 
   useEffect(() => {
     setForm(buildForm(profile));
-  }, [profile.id]);
+  }, [profile]);
 
   const set = <K extends keyof LeagueSettingsForm>(key: K, value: LeagueSettingsForm[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
@@ -90,8 +96,8 @@ export function LeagueSettingsForm({ profile }: { profile: LeagueProfile }) {
         weight_trade_tolerance: Number(form.weight_trade_tolerance),
         roster_min: Number(form.roster_min),
         roster_max: Number(form.roster_max),
-        enabled_chips: JSON.parse(form.enabled_chips),
-        release_cycles: JSON.parse(form.release_cycles),
+        enabled_chips: parseJsonArray(form.enabled_chips, "Enabled chips"),
+        release_cycles: parseJsonArray(form.release_cycles, "Release cycles"),
       };
       await updateLeague.mutateAsync({ id: String(profile.id), row: payload });
       notify("League settings saved.");

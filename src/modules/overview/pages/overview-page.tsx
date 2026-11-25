@@ -12,7 +12,7 @@ import { DataTable } from "@/shared/components/data-table";
 export function OverviewPage() {
   const { profileId, profiles, selectedProfile } = useAdminContext();
   const { isAppAdmin } = useSession();
-  const { teams, pending, weeks, trades } = useOverviewData(profileId);
+  const { teams, pending, weeks, trades } = useOverviewData(profileId, isAppAdmin);
   const navigate = useNavigate();
   const active = weeks.rows.find((week) => isTrue(week.is_active));
   const activeLocked = active ? isTrue(active.is_locked) : false;

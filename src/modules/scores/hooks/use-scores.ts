@@ -13,6 +13,7 @@ export function useTeamScores(profileId: string) {
     "team_gw_scores",
     { profile_id: profileId, order: "points.desc", limit: "200" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 
@@ -22,6 +23,7 @@ export function usePlayerMatchStats(profileId: string) {
     "player_match_stats",
     { profile_id: profileId, order: "gameweek_id.desc", limit: "500" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 

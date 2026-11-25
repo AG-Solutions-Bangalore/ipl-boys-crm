@@ -12,12 +12,15 @@ export function useAdminBonuses(profileId: string) {
     "admin_bonuses",
     { profile_id: profileId, order: "created_at.desc", limit: "200" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 
 export function useAdminBonusTeams(profileId: string) {
   const fetcher = useCallback(() => scoresApi.bonusTeams(profileId), [profileId]);
-  return useRows<FantasyTeam>("fpl_teams", { profile_id: profileId }, fetcher);
+  return useRows<FantasyTeam>("fpl_teams", { profile_id: profileId }, fetcher, {
+    enabled: Boolean(profileId),
+  });
 }
 
 export function useCreateAdminBonus() {

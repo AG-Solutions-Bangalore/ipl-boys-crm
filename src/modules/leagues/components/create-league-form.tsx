@@ -38,7 +38,7 @@ export function CreateLeagueForm({
         name: name.trim(),
         description: description.trim(),
         user_id: userId,
-        starting_budget: Number(budget) || 5000,
+        starting_budget: Number.isFinite(Number(budget)) ? Number(budget) : 5000,
         weight_enabled: false,
         weight_trade_tolerance: 0,
         allow_negative_points: true,

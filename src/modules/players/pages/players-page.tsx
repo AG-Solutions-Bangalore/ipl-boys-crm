@@ -71,12 +71,18 @@ export function PlayersPage() {
           </h3>
         </div>
         <DataTable
-          rows={players.rows}
+          rows={players.rows.map((player) => ({
+            ...player,
+            franchise_name:
+              franchises.rows.find(
+                (franchise) => String(franchise.id) === String(player.ipl_team_id),
+              )?.name || player.ipl_team_id,
+          }))}
           loading={players.loading}
           columns={[
             { key: "name", label: "Player" },
             { key: "role", label: "Role" },
-            { key: "ipl_team_id", label: "Franchise" },
+            { key: "franchise_name", label: "Franchise" },
             { key: "tier", label: "Tier" },
             { key: "weight", label: "Weight" },
             { key: "base_price", label: "Base price" },

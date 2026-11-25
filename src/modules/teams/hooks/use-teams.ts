@@ -12,6 +12,7 @@ export function useTeams(profileId: string) {
     "fpl_teams",
     { profile_id: profileId, order: "sort_order.asc" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 
@@ -21,7 +22,9 @@ export function useTeamFranchises() {
 
 export function useTeamProfile(profileId: string) {
   const fetcher = useCallback(() => teamsApi.profile(profileId), [profileId]);
-  return useRows<LeagueProfile>("game_profiles", { id: profileId, limit: "1" }, fetcher);
+  return useRows<LeagueProfile>("game_profiles", { id: profileId, limit: "1" }, fetcher, {
+    enabled: Boolean(profileId),
+  });
 }
 
 export function useCreateTeam() {

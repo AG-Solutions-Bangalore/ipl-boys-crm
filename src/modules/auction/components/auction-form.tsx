@@ -53,6 +53,8 @@ export function AuctionForm({
   const basePriceNum = Number(selectedPlayer?.base_price) || 0;
   const currentPriceNum = Number(price) || 0;
   const isBelowBase = currentPriceNum < basePriceNum;
+  const remainingBudget = selectedTeam ? Number(selectedTeam.budget || 0) - currentPriceNum : 0;
+  const isDeficit = Boolean(selectedTeam && remainingBudget < 0);
 
   return (
     <Card className="border-border/70 bg-card">
@@ -201,6 +203,11 @@ export function AuctionForm({
                 Sale price cannot be lower than player's base price (₹{basePriceNum} Cr).
               </p>
             )}
+            {isDeficit && (
+              <p className="text-[11px] text-destructive">
+                Sale price exceeds the selected team&apos;s available purse.
+              </p>
+            )}
           </div>
         </CardContent>
 
@@ -217,7 +224,7 @@ export function AuctionForm({
           </div>
           <Button
             type="submit"
-            disabled={busy || !selectedPlayer || !selectedTeam || isBelowBase}
+            disabled={busy || !selectedPlayer || !selectedTeam || isBelowBase || isDeficit}
             className="gap-2"
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <Gavel className="size-4" />}

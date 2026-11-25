@@ -1,5 +1,5 @@
 import axios from "axios";
-import { readToken } from "@/lib/storage";
+import { clearStoredUser, clearToken, readToken } from "@/lib/storage";
 
 const API_BASE = (
   import.meta.env.DEV
@@ -34,6 +34,18 @@ http.interceptors.response.use(
     if (axios.isAxiosError(error)) {
       const data = error.response?.data as { error?: string; message?: string } | undefined;
       const status = error.response?.status ?? 0;
+      const requestUrl = error.config?.url || "";
+      if (
+        status === 401 &&
+        !requestUrl.includes("/auth/login") &&
+        !requestUrl.includes("/auth/logout")
+      ) {
+        clearToken();
+        clearStoredUser();
+        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+          window.location.assign("/login");
+        }
+      }
       const message =
         data?.error ||
         data?.message ||

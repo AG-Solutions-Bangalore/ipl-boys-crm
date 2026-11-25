@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { asText } from "@/lib/format";
 import { useAdminContext } from "@/modules/shell/context/admin-context";
+import { useTeams } from "@/modules/teams/hooks/use-teams";
 import { useCancelTrade, useExecuteTrade, useTrades } from "@/modules/trades/hooks/use-trades";
 import type { Trade } from "@/modules/trades/types/trade.types";
 import { DataTable } from "@/shared/components/data-table";
@@ -10,10 +11,13 @@ import { useAppFeedback } from "@/shared/context/feedback-context";
 export function TradesPage() {
   const { profileId } = useAdminContext();
   const trades = useTrades(profileId);
+  const teams = useTeams(profileId);
   const executeTrade = useExecuteTrade();
   const cancelTrade = useCancelTrade();
   const { notify, showError } = useAppFeedback();
   const [busy, setBusy] = useState("");
+  const teamName = (id: unknown) =>
+    asText(teams.rows.find((team) => String(team.id) === String(id))?.name) || String(id || "—");
 
   const execute = async (row: Trade) => {
     if (!row.id) return;
@@ -56,13 +60,17 @@ export function TradesPage() {
       />
       <div className="panel">
         <DataTable
-          rows={trades.rows}
-          loading={trades.loading}
+          rows={trades.rows.map((trade) => ({
+            ...trade,
+            from_team_name: teamName(trade.from_team_id),
+            to_team_name: teamName(trade.to_team_id),
+          }))}
+          loading={trades.loading || teams.loading}
           columns={[
             { key: "created_at", label: "Created" },
             { key: "type", label: "Type" },
-            { key: "from_team_id", label: "From team" },
-            { key: "to_team_id", label: "To team" },
+            { key: "from_team_name", label: "From team" },
+            { key: "to_team_name", label: "To team" },
             { key: "status", label: "Status" },
             { key: "cash_from", label: "Cash from" },
             { key: "cash_to", label: "Cash to" },

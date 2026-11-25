@@ -24,7 +24,8 @@ export function ManagersPage() {
   const removeAssignment = useRemoveAssignment();
   const resetPassword = useResetPassword();
   const { notify, showError } = useAppFeedback();
-  const [userId, setUserId] = useState("");
+  const [assignmentUserId, setAssignmentUserId] = useState("");
+  const [resetUserId, setResetUserId] = useState("");
   const [teamId, setTeamId] = useState("");
   const [busy, setBusy] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -33,21 +34,26 @@ export function ManagersPage() {
   const approvedUsers = users.rows.filter((user) => isTrue(user.approved));
 
   useEffect(() => {
-    if (!userId && approvedUsers[0]?.user_id) setUserId(String(approvedUsers[0].user_id));
+    if (!assignmentUserId && approvedUsers[0]?.user_id) {
+      setAssignmentUserId(String(approvedUsers[0].user_id));
+    }
+    if (!resetUserId && approvedUsers[0]?.user_id) {
+      setResetUserId(String(approvedUsers[0].user_id));
+    }
     if (!teamId && teams.rows[0]?.id) setTeamId(String(teams.rows[0].id));
-  }, [approvedUsers, teams.rows, userId, teamId]);
+  }, [approvedUsers, teams.rows, assignmentUserId, resetUserId, teamId]);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
-    if (!profileId || !userId || !teamId) return;
-    setBusy(userId);
+    if (!profileId || !assignmentUserId || !teamId) return;
+    setBusy(assignmentUserId);
     try {
-      const current = assignments.rows.find((row) => String(row.user_id) === userId);
+      const current = assignments.rows.find((row) => String(row.user_id) === assignmentUserId);
       if (current && String(current.team_id) === teamId) {
         showError("This manager is already assigned to that team.");
         return;
       }
-      await assignManager.mutateAsync({ userId, profileId, teamId });
+      await assignManager.mutateAsync({ userId: assignmentUserId, profileId, teamId });
       notify("Manager assigned to the selected team.");
     } catch (err) {
       showError(`Assignment failed: ${(err as Error).message}`);
@@ -71,10 +77,10 @@ export function ManagersPage() {
 
   const reset = async (event: FormEvent) => {
     event.preventDefault();
-    if (!userId) return;
+    if (!resetUserId) return;
     setBusy("password");
     try {
-      await resetPassword.mutateAsync({ userId, password: newPassword });
+      await resetPassword.mutateAsync({ userId: resetUserId, password: newPassword });
       setNewPassword("");
       notify(
         "Password reset. Share the temporary password with the manager through your usual private channel.",
@@ -107,7 +113,11 @@ export function ManagersPage() {
         </div>
         <label>
           Approved manager
-          <select required value={userId} onChange={(e) => setUserId(e.target.value)}>
+          <select
+            required
+            value={assignmentUserId}
+            onChange={(e) => setAssignmentUserId(e.target.value)}
+          >
             <option value="">Choose a manager</option>
             {approvedUsers.map((user) => (
               <option key={String(user.user_id)} value={String(user.user_id)}>
@@ -130,7 +140,7 @@ export function ManagersPage() {
         <button
           type="submit"
           className="primary"
-          disabled={!userId || !teamId || !!busy || users.loading || teams.loading}
+          disabled={!assignmentUserId || !teamId || !!busy || users.loading || teams.loading}
         >
           Assign manager
         </button>
@@ -144,7 +154,7 @@ export function ManagersPage() {
         </div>
         <label>
           Approved account
-          <select required value={userId} onChange={(e) => setUserId(e.target.value)}>
+          <select required value={resetUserId} onChange={(e) => setResetUserId(e.target.value)}>
             <option value="">Choose an approved manager</option>
             {approvedUsers.map((user) => (
               <option key={String(user.user_id)} value={String(user.user_id)}>
@@ -179,7 +189,7 @@ export function ManagersPage() {
           <button
             type="submit"
             className="secondary"
-            disabled={!userId || newPassword.length < 8 || !!busy}
+            disabled={!resetUserId || newPassword.length < 8 || !!busy}
           >
             {busy === "password" ? "Resetting…" : "Reset password"}
           </button>
@@ -187,7 +197,8 @@ export function ManagersPage() {
         <div className="col-span-full -mt-1 text-xs">
           {newPassword.length >= 8 ? (
             <span className="flex items-center gap-1.5 font-medium text-[var(--green)]">
-              <Check size={13} strokeWidth={2.5} /> Password meets requirements ({newPassword.length} characters)
+              <Check size={13} strokeWidth={2.5} /> Password meets requirements (
+              {newPassword.length} characters)
             </span>
           ) : (
             <span className="flex items-center gap-1.5 text-[var(--muted-ink)]">

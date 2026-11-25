@@ -12,6 +12,7 @@ export function useAuctionTeams(profileId: string) {
     "fpl_teams",
     { profile_id: profileId, order: "sort_order.asc" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 
@@ -21,7 +22,9 @@ export function useAuctionPlayers() {
 
 export function useAuctionAssignments(profileId: string) {
   const fetcher = useCallback(() => auctionApi.assignments(profileId), [profileId]);
-  return useRows<PlayerAssignment>("player_assignments", { profile_id: profileId }, fetcher);
+  return useRows<PlayerAssignment>("player_assignments", { profile_id: profileId }, fetcher, {
+    enabled: Boolean(profileId),
+  });
 }
 
 export function useExecuteAuctionSale() {

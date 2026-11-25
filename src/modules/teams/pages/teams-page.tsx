@@ -41,14 +41,19 @@ export function TeamsPage() {
       )}
       <div className="panel">
         <DataTable
-          rows={teams.rows}
-          loading={teams.loading}
+          rows={teams.rows.map((team) => ({
+            ...team,
+            franchise_name:
+              franchises.rows.find((franchise) => String(franchise.id) === String(team.ipl_team_id))
+                ?.name || team.ipl_team_id,
+          }))}
+          loading={teams.loading || franchises.loading}
           columns={[
             { key: "name", label: "Fantasy team" },
             { key: "owner", label: "Manager" },
             { key: "budget", label: "Budget" },
             { key: "squad_value", label: "Squad value" },
-            { key: "ipl_team_id", label: "IPL franchise" },
+            { key: "franchise_name", label: "IPL franchise" },
           ]}
         />
       </div>

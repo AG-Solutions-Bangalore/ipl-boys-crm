@@ -9,6 +9,7 @@ import {
   useExecuteAuctionSale,
 } from "@/modules/auction/hooks/use-auction";
 import { useAdminContext } from "@/modules/shell/context/admin-context";
+import { useTeamFranchises } from "@/modules/teams/hooks/use-teams";
 import { DataTable } from "@/shared/components/data-table";
 import { PanelTitle } from "@/shared/components/panel-title";
 import { useAppFeedback } from "@/shared/context/feedback-context";
@@ -18,6 +19,7 @@ export function AuctionPage() {
   const teams = useAuctionTeams(profileId);
   const players = useAuctionPlayers();
   const assignments = useAuctionAssignments(profileId);
+  const franchises = useTeamFranchises();
   const sellMutation = useExecuteAuctionSale();
   const { notify, showError } = useAppFeedback();
   const [teamId, setTeamId] = useState("");
@@ -26,16 +28,23 @@ export function AuctionPage() {
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const unassigned = useMemo(
-    () =>
-      players.rows.filter(
-        (player) =>
-          !assignments.rows.some(
-            (assignment) => String(assignment.player_id) === String(player.id),
-          ) && asText(player.name).toLowerCase().includes(filter.toLowerCase()),
-      ),
-    [players.rows, assignments.rows, filter],
-  );
+  const unassigned = useMemo(() => {
+    const needle = filter.trim().toLowerCase();
+    return players.rows.filter((player) => {
+      const franchiseName = franchises.rows.find(
+        (franchise) => String(franchise.id) === String(player.ipl_team_id),
+      )?.name;
+      const matchesFilter =
+        !needle ||
+        asText(player.name).toLowerCase().includes(needle) ||
+        asText(franchiseName).toLowerCase().includes(needle);
+      return (
+        !assignments.rows.some(
+          (assignment) => String(assignment.player_id) === String(player.id),
+        ) && matchesFilter
+      );
+    });
+  }, [players.rows, assignments.rows, franchises.rows, filter]);
 
   useEffect(() => {
     if (!teamId && teams.rows[0]?.id) setTeamId(String(teams.rows[0].id));
@@ -92,7 +101,11 @@ export function AuctionPage() {
           />
         </div>
         <div className="lg:col-span-5">
-          <AuctionSummary selectedPlayer={selectedPlayer} selectedTeam={selectedTeam} price={price} />
+          <AuctionSummary
+            selectedPlayer={selectedPlayer}
+            selectedTeam={selectedTeam}
+            price={price}
+          />
         </div>
       </div>
       <section className="panel">
@@ -105,12 +118,18 @@ export function AuctionPage() {
           </div>
         </div>
         <DataTable
-          rows={unassigned.slice(0, 50)}
-          loading={false}
+          rows={unassigned.slice(0, 50).map((player) => ({
+            ...player,
+            franchise_name:
+              franchises.rows.find(
+                (franchise) => String(franchise.id) === String(player.ipl_team_id),
+              )?.name || player.ipl_team_id,
+          }))}
+          loading={players.loading || assignments.loading || franchises.loading}
           columns={[
             { key: "name", label: "Player / asset" },
             { key: "role", label: "Role" },
-            { key: "ipl_team_id", label: "Franchise" },
+            { key: "franchise_name", label: "Franchise" },
             { key: "tier", label: "Tier" },
             { key: "base_price", label: "Base price" },
           ]}

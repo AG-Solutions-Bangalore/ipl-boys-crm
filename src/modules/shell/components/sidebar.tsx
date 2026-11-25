@@ -135,10 +135,10 @@ export function Sidebar({
             type="button"
             title={collapsed ? "Sign out" : undefined}
             className="nav-item sidebar-signout"
-              onClick={() => {
-                setMobileOpen(false);
-                void signOut().then(() => toast.success("Signed out."));
-              }}
+            onClick={() => {
+              setMobileOpen(false);
+              void signOut().then(() => toast.success("Signed out."));
+            }}
           >
             <span className="nav-item-icon" aria-hidden="true">
               <LogOut size={17} strokeWidth={1.75} />

@@ -127,12 +127,7 @@ export function AdminBonusManager({ profileId }: { profileId: string }) {
           <button type="submit" className="primary" disabled={saving || !teamId || !weekId}>
             {saving ? "Saving…" : "Record adjustment"}
           </button>
-          <button
-            type="button"
-            className="secondary"
-            disabled={saving}
-            onClick={resetForm}
-          >
+          <button type="button" className="secondary" disabled={saving} onClick={resetForm}>
             Reset form
           </button>
         </div>

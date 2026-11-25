@@ -8,7 +8,9 @@ export function useRows<T extends Row = Row>(
   table: string,
   params: QueryParams = {},
   fetcher?: () => Promise<T[]>,
+  options: { enabled?: boolean } = {},
 ) {
+  const enabled = options.enabled ?? true;
   const queryClient = useQueryClient();
   const paramsKey = useMemo(() => JSON.stringify(params), [params]);
   const stableParams = useMemo(() => JSON.parse(paramsKey) as QueryParams, [paramsKey]);
@@ -16,6 +18,7 @@ export function useRows<T extends Row = Row>(
   const query = useQuery({
     queryKey,
     queryFn: () => (fetcher ? fetcher() : tableApi.list<T>(table, stableParams)),
+    enabled,
     placeholderData: (previous) => previous,
   });
   const setRows = useCallback(
@@ -28,7 +31,7 @@ export function useRows<T extends Row = Row>(
   );
   return {
     rows: query.data ?? [],
-    loading: query.isLoading,
+    loading: enabled && query.isLoading,
     error: query.error instanceof Error ? query.error.message : "",
     setRows,
   };

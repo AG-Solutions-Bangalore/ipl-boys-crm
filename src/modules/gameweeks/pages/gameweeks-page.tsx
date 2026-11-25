@@ -29,7 +29,7 @@ export function GameweeksPage() {
   const nextNumber = Math.max(0, ...gameweeks.rows.map((row) => Number(row.number) || 0)) + 1;
 
   const update = async (row: Gameweek, patch: Row) => {
-    if (!row.id) return;
+    if (!profileId || !row.id) return;
     setBusy(String(row.id));
     try {
       await updateGameweek.mutateAsync({ id: String(row.id), row: patch });
@@ -42,7 +42,7 @@ export function GameweeksPage() {
   };
 
   const recalc = async (row: Gameweek) => {
-    if (!row.id) return;
+    if (!profileId || !row.id) return;
     setBusy(`score-${row.id}`);
     try {
       await recalculateGameweek.mutateAsync({
@@ -111,7 +111,7 @@ export function GameweeksPage() {
               <button
                 type="button"
                 className="text-button"
-                disabled={busy === `score-${row.id}`}
+                disabled={!profileId || busy === `score-${row.id}`}
                 onClick={() => recalc(row as Gameweek)}
               >
                 {busy === `score-${row.id}` ? "Working…" : "Recalculate"}

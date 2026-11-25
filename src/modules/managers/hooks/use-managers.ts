@@ -15,6 +15,7 @@ export function useManagerTeams(profileId: string) {
     "fpl_teams",
     { profile_id: profileId, order: "sort_order.asc" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 
@@ -24,6 +25,7 @@ export function useManagerAssignments(profileId: string) {
     "user_team_assignments",
     { profile_id: profileId, limit: "500" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 

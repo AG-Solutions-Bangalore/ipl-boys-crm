@@ -215,12 +215,7 @@ export function ScoreEntryForm({
       </div>
 
       <div className="flex items-center justify-end gap-2.5 border-t border-border pt-4">
-        <button
-          type="button"
-          className="secondary"
-          disabled={saving}
-          onClick={resetForm}
-        >
+        <button type="button" className="secondary" disabled={saving} onClick={resetForm}>
           Reset form
         </button>
         <button

@@ -10,6 +10,7 @@ export function useTrades(profileId: string) {
     "trades",
     { profile_id: profileId, order: "created_at.desc", limit: "200" },
     fetcher,
+    { enabled: Boolean(profileId) },
   );
 }
 
