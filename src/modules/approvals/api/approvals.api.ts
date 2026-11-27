@@ -1,4 +1,5 @@
-import type { ApprovalProfile } from "@/modules/approvals/types/approval.types";
+import { http } from "@/lib/axios";
+import type { ApprovalProfile, LeagueLeadRequest } from "@/modules/approvals/types/approval.types";
 import { tableApi } from "@/shared/api/table.api";
 
 export const approvalsApi = {
@@ -13,4 +14,15 @@ export const approvalsApi = {
       approved,
       status: approved ? "approved" : "rejected",
     }),
+  listLeagueRequests: async (signal?: AbortSignal): Promise<LeagueLeadRequest[]> => {
+    const { data } = await http.get<LeagueLeadRequest[]>("/league-requests", { signal });
+    return data;
+  },
+  decideLeagueRequest: async (id: string, approve: boolean): Promise<{ success: boolean }> => {
+    const { data } = await http.post<{ success: boolean }>(
+      `/league-requests/${encodeURIComponent(id)}`,
+      { approve },
+    );
+    return data;
+  },
 };

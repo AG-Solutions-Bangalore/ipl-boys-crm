@@ -7,3 +7,9 @@ export type ApprovalProfile = Row & {
   approved?: unknown;
   status?: unknown;
 };
+
+export type LeagueLeadRequest = Row & {
+  id: string;
+  league_name: string;
+  display_name: string;
+};
