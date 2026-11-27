@@ -2,9 +2,8 @@ import axios from "axios";
 import { clearStoredUser, clearToken, readToken } from "@/lib/storage";
 
 const API_BASE = (
-  import.meta.env.DEV
-    ? "/api"
-    : import.meta.env.VITE_API_BASE_URL || "https://agsdemo.in/iplboysapi/public/api"
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? "/api" : "https://agsdemo.in/iplboysapi/public/api")
 ).replace(/\/+$/, "");
 
 export class ApiError extends Error {
